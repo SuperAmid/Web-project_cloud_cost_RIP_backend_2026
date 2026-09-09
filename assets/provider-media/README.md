@@ -2,7 +2,7 @@
 
 `docker compose up -d` creates the public `provider-media` bucket and uploads every file from this directory.
 
-The SVG previews are included. Put short looping MP4 clips into `videos/` with these keys before the demonstration:
+The SVG previews and short looping MP4 clips are included. The video keys are:
 
 - `core-loop.mp4`
 - `ring-loop.mp4`

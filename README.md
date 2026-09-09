@@ -21,7 +21,7 @@ go run .
 
 Откройте `http://localhost:8080/routers/feed`. Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
 
-Перед демонстрацией загрузите четыре коротких MP4 с ключами из `assets/provider-media/README.md` в `provider-media/videos/`; SVG-превью и структура bucket загружаются автоматически.
+Четыре коротких MP4 и SVG-превью хранятся в `assets/provider-media/`; команда `docker compose up -d` автоматически загружает их в bucket `provider-media`.
 
 ## Проверка GET
 
