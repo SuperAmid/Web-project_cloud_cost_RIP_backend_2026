@@ -1,5 +1,7 @@
 # ER-диаграмма ЛР2
 
+Визуальная версия для защиты: [lab2-er-diagram.svg](lab2-er-diagram.svg).
+
 ```text
 provider_users
   id PK, email VARCHAR(120) UNIQUE, display_name VARCHAR(80), created_at TIMESTAMP

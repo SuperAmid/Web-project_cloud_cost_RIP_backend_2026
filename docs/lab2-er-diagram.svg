@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">ER-диаграмма ЛР2: сеть маршрутизаторов провайдера</title>
+  <desc id="desc">Три таблицы: provider_users, routers и router_likes. Пользователь создаёт маршрутизаторы и ставит лайки через таблицу связей.</desc>
+  <style>
+    text{font-family:Arial,sans-serif;fill:#eaf4ff}.title{font-size:28px;font-weight:bold}.head{font-size:20px;font-weight:bold}.field{font-size:15px}.note{font-size:14px;fill:#a9bed2}.box{fill:#102334;stroke:#58e1ff;stroke-width:2}.line{stroke:#0d79f2;stroke-width:3;fill:none}.label{font-size:16px;fill:#58e1ff;font-weight:bold}
+  </style>
+  <rect width="1400" height="820" fill="#07131f"/>
+  <text x="56" y="58" class="title">Provider Router Network — ER-диаграмма ЛР2</text>
+  <text x="56" y="86" class="note">PostgreSQL · GORM migration · внешние ключи RESTRICT · каскадное удаление запрещено</text>
+  <rect x="55" y="145" width="355" height="270" rx="14" class="box"/>
+  <text x="78" y="185" class="head">provider_users</text><line x1="75" x2="390" y1="200" y2="200" stroke="#244258"/>
+  <text x="78" y="232" class="field">PK  id · BIGINT</text><text x="78" y="262" class="field">UQ  email · VARCHAR(120)</text><text x="78" y="292" class="field">display_name · VARCHAR(80)</text><text x="78" y="322" class="field">created_at · TIMESTAMP</text>
+  <text x="78" y="374" class="note">Создатель маршрутизатора / пользователь лайка</text>
+  <rect x="530" y="125" width="410" height="540" rx="14" class="box"/>
+  <text x="555" y="165" class="head">routers</text><line x1="550" x2="920" y1="180" y2="180" stroke="#244258"/>
+  <text x="555" y="212" class="field">PK  id · BIGINT</text><text x="555" y="240" class="field">name · VARCHAR(120)</text><text x="555" y="268" class="field">description · VARCHAR(500)</text><text x="555" y="296" class="field">status · VARCHAR(12): draft / published / deleted</text><text x="555" y="324" class="field">image_url · VARCHAR(500)</text><text x="555" y="352" class="field">video_url · VARCHAR(500)</text><text x="555" y="380" class="field">router_type · VARCHAR(24)</text><text x="555" y="408" class="field">throughput_mbps · INTEGER</text><text x="555" y="436" class="field">power_consumption_w · INTEGER</text><text x="555" y="464" class="field">port_count · INTEGER</text><text x="555" y="492" class="field">location · VARCHAR(160)</text><text x="555" y="520" class="field">master_router_name · VARCHAR(120)</text><text x="555" y="548" class="field">created_at · TIMESTAMP</text><text x="555" y="576" class="field">published_at · TIMESTAMP NULL</text><text x="555" y="604" class="field">FK  created_by_id → provider_users.id</text><text x="555" y="638" class="note">Partial UNIQUE: один draft на created_by_id</text>
+  <rect x="1010" y="230" width="335" height="235" rx="14" class="box"/>
+  <text x="1035" y="270" class="head">router_likes</text><line x1="1030" x2="1325" y1="285" y2="285" stroke="#244258"/>
+  <text x="1035" y="320" class="field">PK, FK  router_id → routers.id</text><text x="1035" y="350" class="field">PK, FK  user_id → provider_users.id</text><text x="1035" y="380" class="field">created_at · TIMESTAMP</text><text x="1035" y="425" class="note">Связь M:N для отображения лайков</text>
+  <path d="M410 240 C455 240 475 240 530 240" class="line"/><text x="430" y="226" class="label">1 : N создаёт</text>
+  <path d="M940 350 C970 350 980 350 1010 350" class="line"/><text x="945" y="334" class="label">1 : N</text>
+  <path d="M410 320 C720 760 1020 610 1100 465" class="line"/><text x="770" y="730" class="label">1 : N ставит лайки</text>
+  <text x="55" y="760" class="note">Для защиты: покажите этот SVG и перенесите те же таблицы, поля, типы, PK/FK и связи в StarUML (.mdj).</text>
+</svg>
