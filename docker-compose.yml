@@ -1,4 +1,26 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: provider_network
+      POSTGRES_USER: router_user
+      POSTGRES_PASSWORD: router_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U router_user -d provider_network"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
@@ -23,3 +45,4 @@ services:
       mc cp --recursive /assets/provider-media/ local/provider-media/"
 volumes:
   minio-data:
+  postgres-data:
