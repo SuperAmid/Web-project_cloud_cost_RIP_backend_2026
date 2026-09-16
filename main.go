@@ -73,7 +73,7 @@ type App struct {
 }
 
 func main() {
-	db, err := gorm.Open(postgres.Open(envOr("DATABASE_URL", "host=localhost user=router_user password=router_password dbname=provider_network port=5432 sslmode=disable")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(envOr("DATABASE_URL", "host=127.0.0.1 user=router_user password=router_password dbname=provider_network port=5433 sslmode=disable")), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}

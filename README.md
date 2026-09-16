@@ -20,7 +20,7 @@ docker compose up -d
 go run .
 ```
 
-Откройте `http://localhost:8080/routers/feed`. Adminer: `http://localhost:8081` (System: PostgreSQL, Server: `postgres`, User: `router_user`, Password: `router_password`, Database: `provider_network`). Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
+Откройте `http://localhost:8080/routers/feed`. PostgreSQL опубликован на `localhost:5433`. Adminer: `http://localhost:8081` (System: PostgreSQL, Server: `postgres`, User: `router_user`, Password: `router_password`, Database: `provider_network`). Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
 
 Четыре коротких MP4 и SVG-превью хранятся в `assets/provider-media/`; команда `docker compose up -d` автоматически загружает их в bucket `provider-media`.
 
