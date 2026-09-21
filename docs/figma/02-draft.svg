@@ -81,7 +81,7 @@
   <!-- 1: Название -->
   <text x="20" y="284" font-family="Inter, sans-serif" font-size="9" font-weight="500" fill="#6B90B0" letter-spacing="0.8">НАЗВАНИЕ</text>
   <rect x="20" y="288" width="350" height="34" rx="10" fill="#0B1E30" stroke="rgba(88,180,255,0.18)" stroke-width="1"/>
-  <text x="32" y="309" font-family="Inter, sans-serif" font-size="12" fill="#E8F4FF">Saryarka Residence Gateway</text>
+  <text x="32" y="309" font-family="Inter, sans-serif" font-size="12" fill="#E8F4FF">Riverside Residence Gateway</text>
 
   <!-- 2: Image key -->
   <text x="20" y="333" font-family="Inter, sans-serif" font-size="9" font-weight="500" fill="#6B90B0" letter-spacing="0.8">IMAGE KEY</text>
@@ -116,7 +116,7 @@
   <!-- 8: Расположение -->
   <text x="20" y="603" font-family="Inter, sans-serif" font-size="9" font-weight="500" fill="#6B90B0" letter-spacing="0.8">РАСПОЛОЖЕНИЕ</text>
   <rect x="20" y="607" width="350" height="30" rx="10" fill="#0B1E30" stroke="rgba(88,180,255,0.18)" stroke-width="1"/>
-  <text x="32" y="626" font-family="Inter, sans-serif" font-size="12" fill="#E8F4FF">ЖК Сарыарка, корпус 1</text>
+  <text x="32" y="626" font-family="Inter, sans-serif" font-size="12" fill="#E8F4FF">ЖК Речной, корпус 1</text>
 
   <!-- 9: Мастер-маршрутизатор -->
   <text x="20" y="648" font-family="Inter, sans-serif" font-size="9" font-weight="500" fill="#6B90B0" letter-spacing="0.8">МАСТЕР-МАРШРУТИЗАТОР</text>
