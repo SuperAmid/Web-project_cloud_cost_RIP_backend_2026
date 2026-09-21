@@ -117,7 +117,7 @@
   <text x="27" y="622" font-family="'JetBrains Mono', monospace" font-size="9" fill="#6B90B0" letter-spacing="1">JUNIPER PTX10008</text>
 
   <!-- Title -->
-  <text x="27" y="652" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#E8F4FF" letter-spacing="-0.5">KZ Backbone One</text>
+  <text x="27" y="652" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#E8F4FF" letter-spacing="-0.5">Core Backbone One</text>
 
   <!-- Description -->
   <text x="27" y="674" font-family="Inter, sans-serif" font-size="12" fill="rgba(232,244,255,0.6)">Центральный маршрутизатор ядра провайдера</text>
