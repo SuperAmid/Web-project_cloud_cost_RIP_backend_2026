@@ -1,0 +1,12 @@
+.go-build-cache/
+*.exe
+.env
+*.db
+*.sqlite
+*.sqlite3
+postgres-data/
+minio-data/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
