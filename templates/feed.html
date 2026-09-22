@@ -1,1 +1,48 @@
-{{define "feed.html"}}<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{.Title}}</title><link rel="stylesheet" href="/static/styles.css"></head><body class="feed-page"><main class="phone-shell"><section class="video-card"><video class="router-video" autoplay muted loop playsinline poster="{{.Router.ImageURL}}"><source src="{{.Router.VideoURL}}" type="video/mp4"></video><div class="video-shade"></div><div class="feed-content"><p class="eyebrow">{{.Router.RouterType}} · #{{.Router.ID}}</p><h1>{{.Router.Name}}</h1><p class="description">{{.Router.Description}}</p><dl class="metric-pills"><div><dt>Пропускная способность</dt><dd>{{.Router.ThroughputMbps}} Мбит/с</dd></div><div><dt>Потребление</dt><dd>{{.Router.PowerConsumptionW}} Вт</dd></div></dl><div class="feed-actions"><span aria-label="Лайки">♥ {{.Router.Likes}}</span><a class="next-button" href="/routers/feed?id={{.Router.ID}}&next=true">Следующий <span>→</span></a></div></div></section></main>{{template "nav" .}}</body></html>{{end}}
+{{define "feed.html"}}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="feed-page">
+    <main class="phone-shell">
+        <section class="video-card">
+            <video class="router-video" autoplay muted loop playsinline poster="{{.Router.ImageURL}}">
+                <source src="{{.Router.VideoURL}}" type="video/mp4">
+            </video>
+
+            <div class="video-shade"></div>
+
+            <div class="feed-content">
+                <p class="eyebrow">{{.Router.RouterType}} · #{{.Router.ID}}</p>
+                <h1>{{.Router.Name}}</h1>
+                <p class="description">{{.Router.Description}}</p>
+
+                <dl class="metric-pills">
+                    <div>
+                        <dt>Пропускная способность</dt>
+                        <dd>{{.Router.ThroughputMbps}} Мбит/с</dd>
+                    </div>
+                    <div>
+                        <dt>Потребление</dt>
+                        <dd>{{.Router.PowerConsumptionW}} Вт</dd>
+                    </div>
+                </dl>
+
+                <div class="feed-actions">
+                    <span aria-label="Лайки">♥ {{.Router.Likes}}</span>
+                    <a class="next-button" href="/routers/feed?id={{.Router.ID}}&next=true">
+                        Следующий <span>→</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {{template "nav" .}}
+</body>
+</html>
+{{end}}
