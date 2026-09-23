@@ -17,26 +17,37 @@
             <div class="video-shade"></div>
 
             <div class="feed-content">
-                <p class="eyebrow">{{.Router.RouterType}} · #{{.Router.ID}}</p>
-                <h1>{{.Router.Name}}</h1>
-                <p class="description">{{.Router.Description}}</p>
+                <div class="feed-layout">
+                    <header class="feed-head">
+                        <p class="eyebrow">{{.Router.RouterType}} · #{{.Router.ID}}</p>
+                        <h1>{{.Router.Name}}</h1>
+                    </header>
 
-                <dl class="metric-pills">
-                    <div>
-                        <dt>Пропускная способность</dt>
-                        <dd>{{.Router.ThroughputMbps}} Мбит/с</dd>
-                    </div>
-                    <div>
-                        <dt>Потребление</dt>
-                        <dd>{{.Router.PowerConsumptionW}} Вт</dd>
-                    </div>
-                </dl>
+                    <aside class="feed-side">
+                        <dl class="metric-pills">
+                            <div>
+                                <dt>Пропускная способность</dt>
+                                <dd>{{.Router.ThroughputMbps}} Мбит/с</dd>
+                            </div>
+                            <div>
+                                <dt>Потребление</dt>
+                                <dd>{{.Router.PowerConsumptionW}} Вт</dd>
+                            </div>
+                        </dl>
 
-                <div class="feed-actions">
-                    <span aria-label="Лайки">♥ {{.Router.Likes}}</span>
-                    <a class="next-button" href="/routers/feed?id={{.Router.ID}}&next=true">
-                        Следующий <span>→</span>
-                    </a>
+                        <div class="feed-icons">
+                            <span class="like-icon" aria-label="Лайки">♥ {{.Router.Likes}}</span>
+                            <a class="next-icon" href="/provider-routers/feed?id={{.Router.ID}}&next=true" aria-label="Следующий маршрутизатор">→</a>
+                        </div>
+                    </aside>
+
+                    <footer class="feed-foot">
+                        <p class="description">{{.Router.Description}}</p>
+                        <details class="desc-more">
+                            <summary>Еще</summary>
+                            <p class="description-full">{{.Router.Description}}</p>
+                        </details>
+                    </footer>
                 </div>
             </div>
         </section>
