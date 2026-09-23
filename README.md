@@ -52,7 +52,3 @@ go run .
 $env:MINIO_PUBLIC_URL = 'http://localhost:9000/provider-media'
 go run .
 ```
-
-## Демонстрация и подготовка
-
-Пошаговый сценарий находится в [DEMO.md](DEMO.md), спецификация макета — в `docs/figma-lab1-spec.md`, ответы на контрольные вопросы — в `docs/control-questions-lab1.md`.
