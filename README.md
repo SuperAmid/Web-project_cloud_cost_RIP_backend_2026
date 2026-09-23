@@ -6,7 +6,10 @@
 
 - Go `net/http` и серверные HTML-шаблоны, без БД, ORM, JavaScript и POST.
 - Одна in-memory коллекция `Router`: черновик, опубликованные и удалённый маршрутизатор; лайки вычисляются из `LikedUserIDs` на сервере.
-- Ровно три основных GET-маршрута: лента, черновик, плитка с серверным числовым фильтром.
+- Ровно три основных GET-маршрута: лента, черновик, плитка с серверным фильтром-слайдером.
+- Фильтрация по пропускной способности — слайдер `input[type="range"]` со шкалой и кнопкой «Фильтр».
+- Лента: описание внизу, обрезано CSS до двух строк, раскрытие через нативный `<details>` «Еще»; параметры и иконки лайка/«Следующий» справа, переход — иконкой-стрелкой.
+- Форма добавления: пикеры фото и видео (`input[type="file"]`) друг под другом с дефолтными превью и только два поля по теме — «Название» и «Энергопотребление, Вт»; форма заканчивается кнопкой «Далее».
 - Mobile-first CSS в отдельном файле, общая навигация из трёх вкладок.
 - Docker Compose с Minio и инициализацией публичного bucket `provider-media`.
 
@@ -27,7 +30,7 @@ docker compose up -d
 go run .
 ```
 
-Откройте `http://localhost:8080/routers/feed`. Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
+Откройте `http://localhost:8080/provider_routers/feed`. Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
 
 Четыре коротких MP4 и SVG-превью хранятся в `assets/provider-media/`; команда `docker compose up -d` автоматически загружает их в bucket `provider-media`.
 
@@ -35,12 +38,12 @@ go run .
 
 | Что | URL |
 | --- | --- |
-| Лента, первый опубликованный узел | `http://localhost:8080/routers/feed` |
-| Лента по ID | `http://localhost:8080/routers/feed?id=102` |
-| Следующий опубликованный узел | `http://localhost:8080/routers/feed?id=102&next=true` |
-| Черновик | `http://localhost:8080/routers/draft` |
-| Плитка | `http://localhost:8080/routers` |
-| Фильтр пропускной способности | `http://localhost:8080/routers?minThroughputMbps=10000` |
+| Лента, первый опубликованный узел | `http://localhost:8080/provider_routers/feed` |
+| Лента по ID | `http://localhost:8080/provider_routers/feed?id=102` |
+| Следующий опубликованный узел | `http://localhost:8080/provider_routers/feed?id=102&next=true` |
+| Черновик | `http://localhost:8080/provider_routers/draft` |
+| Плитка | `http://localhost:8080/provider_routers` |
+| Фильтр пропускной способности (слайдер) | `http://localhost:8080/provider_routers?minThroughputMbps=10000` |
 
 В demo-данных: 101 — центральный, 102 — промежуточный, 103 — жилой опубликованные маршрутизаторы; 104 — черновик; 105 — удалённый и в UI не выводится.
 

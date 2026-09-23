@@ -95,14 +95,14 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/provider-routers/feed", http.StatusFound)
+		http.Redirect(w, r, "/provider_routers/feed", http.StatusFound)
 	})
-	mux.HandleFunc("/provider-routers/feed", app.feedHandler)
-	mux.HandleFunc("/provider-routers/draft", app.draftHandler)
-	mux.HandleFunc("/provider-routers", app.gridHandler)
+	mux.HandleFunc("/provider_routers/feed", app.feedHandler)
+	mux.HandleFunc("/provider_routers/draft", app.draftHandler)
+	mux.HandleFunc("/provider_routers", app.gridHandler)
 
 	addr := envOr("APP_ADDR", ":8080")
-	log.Printf("provider-routers listens on http://localhost%s", addr)
+	log.Printf("provider_routers listens on http://localhost%s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
