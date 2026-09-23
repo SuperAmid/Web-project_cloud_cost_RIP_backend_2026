@@ -16,7 +16,25 @@
         </header>
 
         <form class="router-form">
-            <img class="draft-image" src="{{.Router.ImageURL}}" alt="{{.Router.Name}}">
+            <section class="media-pickers">
+                <div class="media-picker">
+                    <p class="picker-label">Фото</p>
+                    <img class="picker-preview" src="{{.Router.ImageURL}}" alt="Фото по умолчанию: {{.Router.ImageKey}}">
+                    <label class="file-button">
+                        Выбрать фото
+                        <input type="file" name="photo" accept="image/*">
+                    </label>
+                </div>
+
+                <div class="media-picker">
+                    <p class="picker-label">Видео</p>
+                    <video class="picker-preview" src="{{.Router.VideoURL}}" muted playsinline controls preload="metadata"></video>
+                    <label class="file-button">
+                        Выбрать видео
+                        <input type="file" name="video" accept="video/*">
+                    </label>
+                </div>
+            </section>
 
             <label>Название
                 <input value="{{.Router.Name}}">
@@ -64,6 +82,8 @@
             </label>
 
             <p class="form-hint">Поля доступны только для визуального ввода: POST и сохранение намеренно отсутствуют.</p>
+
+            <button type="submit" class="submit-button">Далее <span>→</span></button>
         </form>
     </main>
 
