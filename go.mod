@@ -1,3 +1,3 @@
-module provider-router-rip
+module provider_routers
 
 go 1.24
