@@ -19,7 +19,7 @@ const (
 	StatusDeleted   RouterStatus = "deleted"
 )
 
-// Router is the Lab 1 provider-network service model. Domain fields are atomic.
+// Router — модель маршрутизатора провайдера.
 type Router struct {
 	ID                int
 	Name              string
@@ -94,13 +94,15 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/routers/feed", http.StatusFound) })
-	mux.HandleFunc("/routers/feed", app.feedHandler)
-	mux.HandleFunc("/routers/draft", app.draftHandler)
-	mux.HandleFunc("/routers", app.gridHandler)
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/provider-routers/feed", http.StatusFound)
+	})
+	mux.HandleFunc("/provider-routers/feed", app.feedHandler)
+	mux.HandleFunc("/provider-routers/draft", app.draftHandler)
+	mux.HandleFunc("/provider-routers", app.gridHandler)
 
 	addr := envOr("APP_ADDR", ":8080")
-	log.Printf("provider-router lab1 listens on http://localhost%s", addr)
+	log.Printf("provider-routers listens on http://localhost%s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
@@ -192,7 +194,7 @@ func (a *App) gridHandler(w http.ResponseWriter, r *http.Request) {
 			views = append(views, a.view(router))
 		}
 	}
-	a.render(w, "grid.html", map[string]any{"Routers": views, "MinThroughput": rawLimit, "Title": "Маршрутизаторы"})
+	a.render(w, "grid.html", map[string]any{"Routers": views, "MinThroughput": minimum, "Title": "Маршрутизаторы"})
 }
 
 func (a *App) render(w http.ResponseWriter, name string, data any) {
