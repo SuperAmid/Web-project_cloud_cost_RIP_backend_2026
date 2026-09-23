@@ -15,18 +15,20 @@
             <p>Опубликованные узлы без удалённых устройств.</p>
         </header>
 
-        <form class="filter-form" method="get" action="/routers">
-            <label for="throughput">Мин. пропускная способность, Мбит/с</label>
-            <div>
-                <input id="throughput"
-                       name="minThroughputMbps"
-                       type="number"
-                       min="0"
-                       inputmode="numeric"
-                       value="{{.MinThroughput}}"
-                       placeholder="Например, 10000">
-                <button type="submit">Фильтр</button>
+        <form class="filter-form" method="get" action="/provider-routers">
+            <div class="filter-head">
+                <label for="throughput">Мин. пропускная способность</label>
+                <output class="filter-value" for="throughput">{{.MinThroughput}} Мбит/с</output>
             </div>
+            <input id="throughput"
+                   name="minThroughputMbps"
+                   type="range"
+                   min="0"
+                   max="{{.MaxThroughput}}"
+                   step="1000"
+                   value="{{.MinThroughput}}">
+            <div class="filter-scale"><span>0 Мбит/с</span><span>{{.MaxThroughput}} Мбит/с</span></div>
+            <button type="submit">Фильтр</button>
         </form>
 
         <section class="router-grid" aria-label="Плитка маршрутизаторов">

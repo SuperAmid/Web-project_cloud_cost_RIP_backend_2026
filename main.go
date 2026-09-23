@@ -189,12 +189,19 @@ func (a *App) gridHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	views := make([]RouterView, 0)
+	maxThroughput := 0
 	for _, router := range a.published() {
 		if router.ThroughputMbps >= minimum {
 			views = append(views, a.view(router))
 		}
+		if router.ThroughputMbps > maxThroughput {
+			maxThroughput = router.ThroughputMbps
+		}
 	}
-	a.render(w, "grid.html", map[string]any{"Routers": views, "MinThroughput": minimum, "Title": "Маршрутизаторы"})
+	if maxThroughput == 0 {
+		maxThroughput = 100000
+	}
+	a.render(w, "grid.html", map[string]any{"Routers": views, "MinThroughput": minimum, "MaxThroughput": maxThroughput, "Title": "Маршрутизаторы"})
 }
 
 func (a *App) render(w http.ResponseWriter, name string, data any) {
