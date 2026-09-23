@@ -51,8 +51,38 @@ type App struct {
 }
 
 var routerCollection = []Router{
-	{ID: 101, Name: "Core Backbone One", ModelName: "Juniper PTX10008", Description: "Центральный маршрутизатор ядра провайдера для магистрального узла.", Status: StatusPublished, ImageKey: "routers/core.svg", VideoKey: "videos/core-loop.mp4", RouterType: "central", ThroughputMbps: 100000, PowerConsumptionW: 1450, PortCount: 8, Location: "Центральный ЦОД, стойка A-12", MasterRouterName: "—", LikedUserIDs: []int{2, 7, 13, 21}},
-	{ID: 102, Name: "North Ring Hub", ModelName: "Cisco NCS 540", Description: "Промежуточный маршрутизатор кольцевой сети с агрегацией районных узлов.", Status: StatusPublished, ImageKey: "routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", ThroughputMbps: 10000, PowerConsumptionW: 310, PortCount: 24, Location: "Северный узел", MasterRouterName: "Core Backbone One", LikedUserIDs: []int{4, 8, 15}},
+	{
+		ID:                101,
+		Name:              "Core Backbone One",
+		ModelName:         "Juniper PTX10008",
+		Description:       "Центральный маршрутизатор ядра провайдера для магистрального узла.",
+		Status:            StatusPublished,
+		ImageKey:          "routers/core.svg",
+		VideoKey:          "videos/core-loop.mp4",
+		RouterType:        "central",
+		ThroughputMbps:    100000,
+		PowerConsumptionW: 1450,
+		PortCount:         8,
+		Location:          "Центральный ЦОД, стойка A-12",
+		MasterRouterName:  "—",
+		LikedUserIDs:      []int{2, 7, 13, 21},
+	},
+	{
+		ID:                102,
+		Name:              "North Ring Hub",
+		ModelName:         "Cisco NCS 540",
+		Description:       "Промежуточный маршрутизатор кольцевой сети с агрегацией районных узлов.",
+		Status:            StatusPublished,
+		ImageKey:          "routers/ring.svg",
+		VideoKey:          "videos/ring-loop.mp4",
+		RouterType:        "intermediate",
+		ThroughputMbps:    10000,
+		PowerConsumptionW: 310,
+		PortCount:         24,
+		Location:          "Северный узел",
+		MasterRouterName:  "Core Backbone One",
+		LikedUserIDs:      []int{4, 8, 15},
+	},
 	{ID: 103, Name: "Harbor Residence Gateway", ModelName: "MikroTik CCR2116", Description: "Конечный маршрутизатор жилого комплекса: распределение трафика квартир.", Status: StatusPublished, ImageKey: "routers/residential.svg", VideoKey: "videos/residential-loop.mp4", RouterType: "residential", ThroughputMbps: 1000, PowerConsumptionW: 72, PortCount: 16, Location: "Жилой комплекс «Панорама», корпус 3", MasterRouterName: "North Ring Hub", LikedUserIDs: []int{1, 3, 6, 9, 12, 18}},
 	{ID: 104, Name: "Riverside Residence Gateway", ModelName: "MikroTik CCR2004", Description: "Черновик карточки маршрутизатора для следующего жилого дома.", Status: StatusDraft, ImageKey: "routers/draft.svg", VideoKey: "videos/draft-loop.mp4", RouterType: "residential", ThroughputMbps: 1000, PowerConsumptionW: 48, PortCount: 12, Location: "Жилой комплекс «Речной», корпус 1", MasterRouterName: "North Ring Hub", LikedUserIDs: []int{5}},
 	{ID: 105, Name: "Legacy South Edge", ModelName: "Cisco ASR 920", Description: "Выведенный из эксплуатации пограничный маршрутизатор.", Status: StatusDeleted, ImageKey: "routers/legacy.svg", VideoKey: "videos/legacy-loop.mp4", RouterType: "intermediate", ThroughputMbps: 1000, PowerConsumptionW: 210, PortCount: 8, Location: "Южный узел", MasterRouterName: "Core Backbone One", LikedUserIDs: []int{11}},
@@ -86,7 +116,8 @@ func (a *App) published() []Router {
 }
 
 func (a *App) view(router Router) RouterView {
-	return RouterView{Router: router, ImageURL: a.mediaURL + "/" + router.ImageKey, VideoURL: a.mediaURL + "/" + router.VideoKey, Likes: len(router.LikedUserIDs)}
+	return RouterView{Router: router, ImageURL: a.mediaURL + "/" + router.ImageKey,
+		VideoURL: a.mediaURL + "/" + router.VideoKey, Likes: len(router.LikedUserIDs)}
 }
 
 func (a *App) feedHandler(w http.ResponseWriter, r *http.Request) {
