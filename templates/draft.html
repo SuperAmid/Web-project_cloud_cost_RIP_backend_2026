@@ -40,45 +40,8 @@
                 <input value="{{.Router.Name}}">
             </label>
 
-            <label>Описание
-                <textarea>{{.Router.Description}}</textarea>
-            </label>
-
-            <label>Image key
-                <input value="{{.Router.ImageKey}}">
-            </label>
-
-            <label>Video key
-                <input value="{{.Router.VideoKey}}">
-            </label>
-
-            <label>Тип маршрутизатора
-                <select>
-                    <option selected>{{.Router.RouterType}}</option>
-                    <option>central</option>
-                    <option>intermediate</option>
-                    <option>residential</option>
-                </select>
-            </label>
-
-            <label>Пропускная способность, Мбит/с
-                <input type="number" value="{{.Router.ThroughputMbps}}">
-            </label>
-
             <label>Энергопотребление, Вт
                 <input type="number" value="{{.Router.PowerConsumptionW}}">
-            </label>
-
-            <label>Количество портов
-                <input type="number" value="{{.Router.PortCount}}">
-            </label>
-
-            <label>Расположение
-                <input value="{{.Router.Location}}">
-            </label>
-
-            <label>Мастер-маршрутизатор
-                <input value="{{.Router.MasterRouterName}}">
             </label>
 
             <p class="form-hint">Поля доступны только для визуального ввода: POST и сохранение намеренно отсутствуют.</p>
