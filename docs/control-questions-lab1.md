@@ -1,8 +1,8 @@
-# Контрольные вопросы ЛР1
+# Контрольные вопросы ЛР‑1
 
 ## MVT и MVC
 
-**MVT** — Model–View–Template: модель хранит данные и правила, view/handler принимает HTTP-запрос и готовит данные, template строит HTML. **MVC** — Model–View–Controller: контроллер координирует запрос, модель содержит предметные данные, представление отображает результат. В этой работе Go handlers выполняют роль controller/view, `Router` и `routerCollection` — model, HTML-файлы — template/view.
+**MVT** — Model–View–Template: модель хранит данные и правила, обработчик принимает HTTP-запрос и готовит данные, шаблон строит HTML. **MVC** — Model–View–Controller: контроллер координирует запрос, модель содержит предметные данные, представление отображает результат. В этой работе Go handlers выполняют роль controller/view, `ProviderRouter` и `providerRouters` — model, HTML-файлы — template/view.
 
 ## Серверная шаблонизация
 
