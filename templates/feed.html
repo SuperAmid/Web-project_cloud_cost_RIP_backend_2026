@@ -2,58 +2,80 @@
 <!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body class="feed-page">
-    <main class="phone-shell">
-        <section class="video-card">
-            <video class="router-video" autoplay muted loop playsinline poster="{{.Router.ImageURL}}">
-                <source src="{{.Router.VideoURL}}" type="video/mp4">
-            </video>
+<body>
 
-            <div class="video-shade"></div>
+  <main class="phone-shell">
 
-            <div class="feed-content">
-                <div class="feed-layout">
-                    <header class="feed-head">
-                        <p class="eyebrow">{{.Router.RouterType}} · #{{.Router.ID}}</p>
-                        <h1>{{.Router.Name}}</h1>
-                    </header>
+    <!-- ---------- Карточка ленты ---------- -->
+    <section class="feed-card">
 
-                    <aside class="feed-side">
-                        <dl class="metric-pills">
-                            <div>
-                                <dt>Пропускная способность</dt>
-                                <dd>{{.Router.ThroughputMbps}} Мбит/с</dd>
-                            </div>
-                            <div>
-                                <dt>Потребление</dt>
-                                <dd>{{.Router.PowerConsumptionW}} Вт</dd>
-                            </div>
-                        </dl>
+      <!-- Медиа: постер-изображение и видео -->
+      <video class="router-video"
+             autoplay
+             muted
+             loop
+             playsinline
+             poster="{{.ProviderRouter.ImageURL}}">
+        <source src="{{.ProviderRouter.VideoURL}}" type="video/mp4">
+      </video>
 
-                        <div class="feed-icons">
-                            <span class="like-icon" aria-label="Лайки">♥ {{.Router.Likes}}</span>
-                            <a class="next-icon" href="/provider_routers/feed?id={{.Router.ID}}&next=true" aria-label="Следующий маршрутизатор">→</a>
-                        </div>
-                    </aside>
+      <!-- Затемняющий градиент поверх медиа -->
+      <div class="feed-shade"></div>
 
-                    <footer class="feed-foot">
-                        <p class="description">{{.Router.Description}}</p>
-                        <details class="desc-more">
-                            <summary>Еще</summary>
-                            <p class="description-full">{{.Router.Description}}</p>
-                        </details>
-                    </footer>
-                </div>
-            </div>
-        </section>
-    </main>
+      <!-- Контент поверх медиа -->
+      <div class="feed-content">
 
-    {{template "nav" .}}
+        <!-- Тип маршрутизатора и ID -->
+        <p class="eyebrow">{{.ProviderRouter.RouterType}} · #{{.ProviderRouter.ID}}</p>
+
+        <!-- Название -->
+        <h1>{{.ProviderRouter.Name}}</h1>
+
+        <!-- Краткое описание -->
+        <p class="short-description">{{.ProviderRouter.ShortDescription}}</p>
+
+        <!-- Раскрывающееся полное описание -->
+        <details class="more-description">
+          <summary>Ещё</summary>
+          <p>{{.ProviderRouter.Description}}</p>
+        </details>
+
+        <!-- Боковые метрики и действия -->
+        <aside class="feed-side">
+
+          <!-- Пропускная способность -->
+          <div class="metric">
+            <span>Пропускная способность</span>
+            <strong>{{.ProviderRouter.BandwidthLabel}}</strong>
+          </div>
+
+          <!-- Стоимость -->
+          <div class="metric">
+            <span>Стоимость</span>
+            <strong>{{.ProviderRouter.CostLabel}}</strong>
+          </div>
+
+          <!-- Лайки -->
+          <span class="like-icon" aria-label="Лайки">♥ {{.ProviderRouter.Likes}}</span>
+
+          <!-- Переход к следующему маршрутизатору -->
+          <a class="next-icon"
+             aria-label="Следующий маршрутизатор"
+             href="/provider_routers/feed?id={{.ProviderRouter.ID}}&next=true">→</a>
+
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <!-- ---------- Нижняя навигация ---------- -->
+  {{template "nav" .}}
+
 </body>
 </html>
 {{end}}
