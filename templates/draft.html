@@ -2,55 +2,64 @@
 <!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <main class="phone-shell form-page">
-        <header class="page-header">
-            <p class="eyebrow">Черновик · не сохраняется</p>
-            <h1>Добавление маршрутизатора</h1>
-            <p>Интерфейс будущей карточки сети. В ЛР1 данные не отправляются на сервер.</p>
-        </header>
 
-        <form class="router-form">
-            <section class="media-pickers">
-                <div class="media-picker">
-                    <p class="picker-label">Фото</p>
-                    <img class="picker-preview" src="{{.Router.ImageURL}}" alt="Фото по умолчанию: {{.Router.ImageKey}}">
-                    <label class="file-button">
-                        Выбрать фото
-                        <input type="file" name="photo" accept="image/*">
-                    </label>
-                </div>
+  <main class="phone-shell">
 
-                <div class="media-picker">
-                    <p class="picker-label">Видео</p>
-                    <video class="picker-preview" src="{{.Router.VideoURL}}" muted playsinline controls preload="metadata"></video>
-                    <label class="file-button">
-                        Выбрать видео
-                        <input type="file" name="video" accept="video/*">
-                    </label>
-                </div>
-            </section>
+    <!-- ---------- Шапка страницы ---------- -->
+    <header class="page-header">
+      <p class="eyebrow">Черновик · ЛР1</p>
+      <h1>Добавление</h1>
+      <p>Выбор фото и видео доступен только в форме. В ЛР1 файлы и данные не отправляются на сервер.</p>
+    </header>
 
-            <label>Название
-                <input value="{{.Router.Name}}">
-            </label>
+    <!-- ---------- Форма добавления ---------- -->
+    <form class="router-form">
 
-            <label>Энергопотребление, Вт
-                <input type="number" value="{{.Router.PowerConsumptionW}}">
-            </label>
+      <!-- Загрузка фото -->
+      <label>Фото
+        <input type="file" accept="image/*">
+        <small>По умолчанию: изображение из MinIO по ключу <code>{{.ProviderRouter.ImageKey}}</code>.</small>
+      </label>
 
-            <p class="form-hint">Поля доступны только для визуального ввода: POST и сохранение намеренно отсутствуют.</p>
+      <!-- Загрузка видео -->
+      <label>Видео
+        <input type="file" accept="video/*">
+        <small>По умолчанию: короткое видео из MinIO по ключу <code>{{.ProviderRouter.VideoKey}}</code>.</small>
+      </label>
 
-            <button type="submit" class="submit-button">Далее <span>→</span></button>
-        </form>
-    </main>
+      <!-- Название маршрутизатора -->
+      <label>Название маршрутизатора
+        <input value="{{.ProviderRouter.Name}}">
+      </label>
 
-    {{template "nav" .}}
+      <!-- Пропускная способность -->
+      <label>Пропускная способность, Мбит/с
+        <input type="number" value="{{.ProviderRouter.BandwidthMbps}}">
+      </label>
+
+      <!-- Стоимость -->
+      <label>Стоимость, ₽
+        <input type="number" value="{{.ProviderRouter.CostRub}}">
+      </label>
+
+      <!-- Кнопка перехода далее -->
+      <button class="action-button" type="button">Далее</button>
+
+      <!-- Подсказка о поведении кнопки -->
+      <p class="form-hint">Кнопка не создаёт запись: POST и сохранение относятся к ЛР2.</p>
+
+    </form>
+  </main>
+
+  <!-- ---------- Нижняя навигация ---------- -->
+  {{template "nav" .}}
+
 </body>
 </html>
 {{end}}

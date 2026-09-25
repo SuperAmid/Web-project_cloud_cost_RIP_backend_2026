@@ -2,53 +2,83 @@
 <!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/static/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}}</title>
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <main class="phone-shell grid-page">
-        <header class="page-header">
-            <p class="eyebrow">Сеть провайдера</p>
-            <h1>Маршрутизаторы</h1>
-            <p>Опубликованные узлы без удалённых устройств.</p>
-        </header>
 
-        <form class="filter-form" method="get" action="/provider_routers">
-            <div class="filter-head">
-                <label for="throughput">Мин. пропускная способность</label>
-                <output class="filter-value" for="throughput">{{.MinThroughput}} Мбит/с</output>
-            </div>
-            <input id="throughput"
-                   name="minThroughputMbps"
-                   type="range"
-                   min="0"
-                   max="{{.MaxThroughput}}"
-                   step="1000"
-                   value="{{.MinThroughput}}">
-            <div class="filter-scale"><span>0 Мбит/с</span><span>{{.MaxThroughput}} Мбит/с</span></div>
-            <button type="submit">Фильтр</button>
-        </form>
+  <main class="phone-shell">
 
-        <section class="router-grid" aria-label="Плитка маршрутизаторов">
-            {{range .Routers}}
-                <a class="router-tile" href="/provider_routers/feed?id={{.ID}}">
-                    <img src="{{.ImageURL}}" alt="{{.Name}}">
-                    <div>
-                        <p class="tile-type">{{.RouterType}}</p>
-                        <h2>{{.Name}}</h2>
-                        <p>{{.ThroughputMbps}} Мбит/с</p>
-                        <span>♥ {{.Likes}}</span>
-                    </div>
-                </a>
-            {{else}}
-                <p class="empty-state">Маршрутизаторы с таким порогом не найдены.</p>
-            {{end}}
-        </section>
-    </main>
+    <!-- ---------- Шапка страницы ---------- -->
+    <header class="page-header">
+      <p class="eyebrow">Сеть провайдера</p>
+      <h1>Маршрутизаторы</h1>
+      <p>Показаны только опубликованные узлы.</p>
+    </header>
 
-    {{template "nav" .}}
+    <!-- ---------- Форма фильтра по пропускной способности ---------- -->
+    <form class="filter-form" method="get" action="/provider_routers">
+
+      <!-- Подпись с текущим значением ползунка -->
+      <label for="bandwidth">
+        Мин. пропускная способность:
+        <output id="bandwidth-value">{{if .MinBandwidth}}{{.MinBandwidth}}{{else}}0{{end}}</output>
+        Мбит/с
+      </label>
+
+      <!-- Ползунок выбора минимальной пропускной способности -->
+      <input id="bandwidth"
+             name="minBandwidthMbps"
+             type="range"
+             min="0"
+             max="100000"
+             step="1000"
+             value="{{if .MinBandwidth}}{{.MinBandwidth}}{{else}}0{{end}}">
+
+      <!-- Кнопка отправки фильтра -->
+      <button class="action-button" type="submit">Фильтровать</button>
+    </form>
+
+    <!-- ---------- Сетка карточек маршрутизаторов ---------- -->
+    <section class="router-grid">
+
+      {{range .ProviderRouters}}
+        <!-- Карточка одного маршрутизатора -->
+        <a class="router-tile" href="/provider_routers/feed?id={{.ID}}">
+
+          <!-- Изображение маршрутизатора -->
+          <img src="{{.ImageURL}}" alt="{{.Name}}">
+
+          <div>
+            <!-- Тип маршрутизатора -->
+            <p class="tile-type">{{.RouterType}}</p>
+
+            <!-- Название -->
+            <h2>{{.Name}}</h2>
+
+            <!-- Пропускная способность -->
+            <p>{{.BandwidthLabel}}</p>
+
+            <!-- Стоимость -->
+            <p>{{.CostLabel}}</p>
+
+            <!-- Лайки -->
+            <span>♥ {{.Likes}}</span>
+          </div>
+        </a>
+      {{else}}
+        <!-- Пустое состояние, если ничего не найдено -->
+        <p class="empty-state">Маршрутизаторы с таким значением не найдены.</p>
+      {{end}}
+
+    </section>
+  </main>
+
+  <!-- ---------- Нижняя навигация ---------- -->
+  {{template "nav" .}}
+
 </body>
 </html>
 {{end}}
