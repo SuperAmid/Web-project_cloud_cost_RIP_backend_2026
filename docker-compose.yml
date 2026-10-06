@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: provider_network
-      POSTGRES_USER: router_user
-      POSTGRES_PASSWORD: router_password
+      POSTGRES_DB: provider_routers
+      POSTGRES_USER: provider_routers_user
+      POSTGRES_PASSWORD: provider_routers_password
     ports:
       - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U router_user -d provider_network"]
+      test: ["CMD-SHELL", "pg_isready -U provider_routers_user -d provider_routers"]
       interval: 5s
       timeout: 3s
       retries: 10

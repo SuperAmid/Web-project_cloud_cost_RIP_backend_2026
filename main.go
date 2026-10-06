@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -14,138 +15,163 @@ import (
 	"gorm.io/gorm"
 )
 
-const fixedCreatorEmail = "student@provider-network.local"
+const fixedCreatorEmail = "student@provider-routers.local"
+
 const (
 	statusDraft     = "draft"
 	statusPublished = "published"
 	statusDeleted   = "deleted"
-	defaultImageURL = "/media/routers/draft.svg"
-	defaultVideoURL = "/media/videos/draft-loop.mp4"
+	defaultImageKey = "provider_routers/draft.svg"
+	defaultVideoKey = "videos/draft-loop.mp4"
 )
 
-type ProviderUser struct {
+// ProviderRouterUser owns drafts and can like provider routers.
+type ProviderRouterUser struct {
 	ID          uint   `gorm:"primaryKey"`
 	Email       string `gorm:"size:120;uniqueIndex;not null"`
 	DisplayName string `gorm:"size:80;not null"`
 	CreatedAt   time.Time
 }
-type Router struct {
-	ID                uint   `gorm:"primaryKey"`
-	Name              string `gorm:"size:120;not null"`
-	Description       string `gorm:"size:500;not null"`
-	Status            string `gorm:"size:12;index;not null"`
-	ImageURL          string `gorm:"size:500;not null"`
-	VideoURL          string `gorm:"size:500;not null"`
-	RouterType        string `gorm:"size:24;not null"`
-	ThroughputMbps    int    `gorm:"not null"`
-	PowerConsumptionW int    `gorm:"not null"`
-	PortCount         int    `gorm:"not null"`
-	Location          string `gorm:"size:160;not null"`
-	MasterRouterName  string `gorm:"size:120;not null"`
-	CreatedAt         time.Time
-	PublishedAt       *time.Time
-	CreatedByID       uint         `gorm:"not null;index"`
-	CreatedBy         ProviderUser `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-	Likes             []RouterLike `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+
+func (ProviderRouterUser) TableName() string { return "provider_router_users" }
+
+// ProviderRouter stores the two parameters required by the subject: bandwidth and cost.
+type ProviderRouter struct {
+	ID            uint   `gorm:"primaryKey"`
+	Name          string `gorm:"size:120;not null"`
+	Description   string `gorm:"size:500;not null"`
+	Status        string `gorm:"size:12;index;not null"`
+	ImageKey      string `gorm:"size:160;not null"`
+	VideoKey      string `gorm:"size:160;not null"`
+	RouterType    string `gorm:"size:24;not null"`
+	BandwidthMbps int    `gorm:"not null"`
+	CostRub       int    `gorm:"not null"`
+	CreatedAt     time.Time
+	PublishedAt   *time.Time
+	CreatedByID   uint                 `gorm:"not null;index"`
+	CreatedBy     ProviderRouterUser   `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+	Likes         []ProviderRouterLike `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 }
-type RouterLike struct {
-	RouterID  uint `gorm:"primaryKey"`
-	UserID    uint `gorm:"primaryKey"`
-	CreatedAt time.Time
-	Router    Router       `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-	User      ProviderUser `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+
+func (ProviderRouter) TableName() string { return "provider_routers" }
+
+type ProviderRouterLike struct {
+	ProviderRouterID uint `gorm:"primaryKey"`
+	UserID           uint `gorm:"primaryKey"`
+	CreatedAt        time.Time
+	ProviderRouter   ProviderRouter     `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
+	User             ProviderRouterUser `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 }
-type RouterView struct {
-	Router
-	Likes int
+
+func (ProviderRouterLike) TableName() string { return "provider_router_likes" }
+
+type ProviderRouterView struct {
+	ProviderRouter
+	ImageURL string
+	VideoURL string
+	Likes    int
 }
+
 type draftPage struct {
-	Router *RouterView
-	Error  string
+	ProviderRouter *ProviderRouterView
+	Error          string
 }
+
 type gridPage struct {
-	Routers       []RouterView
-	MinThroughput string
+	ProviderRouters []ProviderRouterView
+	MinBandwidth    string
 }
-type App struct {
+
+type providerRoutersApp struct {
 	db        *gorm.DB
 	templates *template.Template
+	mediaURL  string
 }
 
 func main() {
-	db, err := gorm.Open(postgres.Open(envOr("DATABASE_URL", "host=127.0.0.1 user=router_user password=router_password dbname=provider_network port=5433 sslmode=disable")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(envOr("DATABASE_URL", "host=127.0.0.1 user=provider_routers_user password=provider_routers_password dbname=provider_routers port=5433 sslmode=disable")), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := migrateAndSeed(db); err != nil {
+	app := &providerRoutersApp{
+		db:        db,
+		templates: template.Must(template.ParseGlob("templates/*.html")),
+		mediaURL:  strings.TrimRight(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media"), "/"),
+	}
+	if err := app.migrateAndSeed(); err != nil {
 		log.Fatal(err)
 	}
-	app := &App{db: db, templates: template.Must(template.ParseGlob("templates/*.html"))}
+
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	mux.Handle("/media/", http.StripPrefix("/media/", http.FileServer(http.Dir("assets/provider-media"))))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "/routers/feed", http.StatusFound) })
-	mux.HandleFunc("/routers/feed", app.feedHandler)
-	mux.HandleFunc("/routers/draft", app.draftHandler)
-	mux.HandleFunc("/routers/draft/create", app.createDraftHandler)
-	mux.HandleFunc("/routers/draft/publish", app.publishDraftHandler)
-	mux.HandleFunc("/routers/", app.routerActionHandler)
-	mux.HandleFunc("/routers", app.gridHandler)
-	log.Printf("provider-router lab2 listens on http://localhost%s", envOr("APP_ADDR", ":8080"))
-	log.Fatal(http.ListenAndServe(envOr("APP_ADDR", ":8080"), mux))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/provider_routers/feed", http.StatusFound)
+	})
+	mux.HandleFunc("/provider_routers/feed", app.feedHandler)
+	mux.HandleFunc("/provider_routers/draft", app.draftHandler)
+	mux.HandleFunc("/provider_routers/draft/create", app.createDraftHandler)
+	mux.HandleFunc("/provider_routers/draft/publish", app.publishDraftHandler)
+	mux.HandleFunc("/provider_routers/", app.providerRouterActionHandler)
+	mux.HandleFunc("/provider_routers", app.gridHandler)
+	addr := envOr("APP_ADDR", ":8080")
+	log.Printf("provider_routers lab2 listens on http://localhost%s", addr)
+	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
-func migrateAndSeed(db *gorm.DB) error {
-	if err := db.AutoMigrate(&ProviderUser{}, &Router{}, &RouterLike{}); err != nil {
+func (a *providerRoutersApp) migrateAndSeed() error {
+	if err := a.db.AutoMigrate(&ProviderRouterUser{}, &ProviderRouter{}, &ProviderRouterLike{}); err != nil {
 		return err
 	}
-	if err := db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS one_draft_router_per_creator ON routers (created_by_id) WHERE status = 'draft'").Error; err != nil {
+	if err := a.db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS one_draft_provider_router_per_creator ON provider_routers (created_by_id) WHERE status = 'draft'").Error; err != nil {
 		return err
 	}
 	var count int64
-	if err := db.Model(&Router{}).Count(&count).Error; err != nil || count > 0 {
+	if err := a.db.Model(&ProviderRouter{}).Count(&count).Error; err != nil || count > 0 {
 		return err
 	}
-	student, operator, viewer := ProviderUser{Email: fixedCreatorEmail, DisplayName: "Студент РИП"}, ProviderUser{Email: "operator@provider-network.local", DisplayName: "Оператор сети"}, ProviderUser{Email: "viewer@provider-network.local", DisplayName: "Наблюдатель"}
-	if err := db.Create(&[]*ProviderUser{&student, &operator, &viewer}).Error; err != nil {
+	student := ProviderRouterUser{Email: fixedCreatorEmail, DisplayName: "Студент РИП"}
+	operator := ProviderRouterUser{Email: "operator@provider-routers.local", DisplayName: "Оператор сети"}
+	viewer := ProviderRouterUser{Email: "viewer@provider-routers.local", DisplayName: "Наблюдатель"}
+	if err := a.db.Create(&[]*ProviderRouterUser{&student, &operator, &viewer}).Error; err != nil {
 		return err
 	}
 	now := time.Now()
-	media := func(key string) string {
-		return strings.TrimRight(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media"), "/") + "/" + key
+	items := []ProviderRouter{
+		{Name: "Core Backbone One", Description: "Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети.", Status: statusPublished, ImageKey: "provider_routers/core.svg", VideoKey: "videos/core-loop.mp4", RouterType: "central", BandwidthMbps: 100000, CostRub: 980000, CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "North Ring Hub", Description: "Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль.", Status: statusPublished, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 10000, CostRub: 310000, CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Harbor Residence Gateway", Description: "Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами.", Status: statusPublished, ImageKey: "provider_routers/residential.svg", VideoKey: "videos/residential-loop.mp4", RouterType: "residential", BandwidthMbps: 1000, CostRub: 72000, CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Riverside Residence Gateway", Description: "Черновик карточки маршрутизатора для следующего жилого дома.", Status: statusDraft, ImageKey: defaultImageKey, VideoKey: defaultVideoKey, RouterType: "residential", BandwidthMbps: 1000, CostRub: 65000, CreatedByID: student.ID},
+		{Name: "Legacy South Edge", Description: "Выведенный из эксплуатации пограничный маршрутизатор.", Status: statusDeleted, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 1000, CostRub: 50000, CreatedByID: operator.ID},
 	}
-	items := []Router{
-		{Name: "Core Backbone One", Description: "Центральный маршрутизатор ядра провайдера для магистрального узла.", Status: statusPublished, ImageURL: media("routers/core.svg"), VideoURL: media("videos/core-loop.mp4"), RouterType: "central", ThroughputMbps: 100000, PowerConsumptionW: 1450, PortCount: 8, Location: "Центральный ЦОД, стойка A-12", MasterRouterName: "—", CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "North Ring Hub", Description: "Промежуточный маршрутизатор кольцевой сети с агрегацией районных узлов.", Status: statusPublished, ImageURL: media("routers/ring.svg"), VideoURL: media("videos/ring-loop.mp4"), RouterType: "intermediate", ThroughputMbps: 10000, PowerConsumptionW: 310, PortCount: 24, Location: "Северный узел", MasterRouterName: "Core Backbone One", CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Harbor Residence Gateway", Description: "Конечный маршрутизатор жилого комплекса: распределение трафика квартир.", Status: statusPublished, ImageURL: media("routers/residential.svg"), VideoURL: media("videos/residential-loop.mp4"), RouterType: "residential", ThroughputMbps: 1000, PowerConsumptionW: 72, PortCount: 16, Location: "Жилой комплекс «Панорама», корпус 3", MasterRouterName: "North Ring Hub", CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Riverside Residence Gateway", Description: "Черновик карточки маршрутизатора для следующего жилого дома.", Status: statusDraft, ImageURL: media("routers/draft.svg"), VideoURL: media("videos/draft-loop.mp4"), RouterType: "residential", ThroughputMbps: 1000, PowerConsumptionW: 48, PortCount: 12, Location: "Жилой комплекс «Речной», корпус 1", MasterRouterName: "North Ring Hub", CreatedByID: operator.ID},
-		{Name: "Legacy South Edge", Description: "Выведенный из эксплуатации пограничный маршрутизатор.", Status: statusDeleted, ImageURL: media("routers/ring.svg"), VideoURL: media("videos/ring-loop.mp4"), RouterType: "intermediate", ThroughputMbps: 1000, PowerConsumptionW: 210, PortCount: 8, Location: "Южный узел", MasterRouterName: "Core Backbone One", CreatedByID: operator.ID}}
-	if err := db.Create(&items).Error; err != nil {
+	if err := a.db.Create(&items).Error; err != nil {
 		return err
 	}
-	return db.Create(&[]RouterLike{{RouterID: items[0].ID, UserID: student.ID}, {RouterID: items[0].ID, UserID: viewer.ID}, {RouterID: items[1].ID, UserID: viewer.ID}, {RouterID: items[2].ID, UserID: student.ID}, {RouterID: items[2].ID, UserID: operator.ID}}).Error
+	return a.db.Create(&[]ProviderRouterLike{{ProviderRouterID: items[0].ID, UserID: student.ID}, {ProviderRouterID: items[0].ID, UserID: viewer.ID}, {ProviderRouterID: items[1].ID, UserID: viewer.ID}, {ProviderRouterID: items[2].ID, UserID: student.ID}, {ProviderRouterID: items[2].ID, UserID: operator.ID}}).Error
 }
-func (a *App) currentCreator() (ProviderUser, error) {
-	var user ProviderUser
+
+func (a *providerRoutersApp) currentCreator() (ProviderRouterUser, error) {
+	var user ProviderRouterUser
 	return user, a.db.Where("email = ?", fixedCreatorEmail).First(&user).Error
 }
-func (a *App) publishedRouters(minimum int) ([]RouterView, error) {
-	var routers []Router
+
+func (a *providerRoutersApp) publishedProviderRouters(minimum int) ([]ProviderRouterView, error) {
+	var providerRouters []ProviderRouter
 	query := a.db.Preload("Likes").Where("status = ?", statusPublished)
 	if minimum > 0 {
-		query = query.Where("throughput_mbps >= ?", minimum)
+		query = query.Where("bandwidth_mbps >= ?", minimum)
 	}
-	if err := query.Order("id").Find(&routers).Error; err != nil {
+	if err := query.Order("id").Find(&providerRouters).Error; err != nil {
 		return nil, err
 	}
-	return toViews(routers), nil
+	return a.toViews(providerRouters), nil
 }
-func (a *App) feedHandler(w http.ResponseWriter, r *http.Request) {
+
+func (a *providerRoutersApp) feedHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		methodNotAllowed(w)
 		return
 	}
-	items, err := a.publishedRouters(0)
+	items, err := a.publishedProviderRouters(0)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -155,10 +181,10 @@ func (a *App) feedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	selected := items[0]
-	if raw := r.URL.Query().Get("id"); raw != "" {
-		id, e := strconv.ParseUint(raw, 10, 64)
-		if e != nil {
-			http.Error(w, "invalid router id", 400)
+	if rawID := r.URL.Query().Get("id"); rawID != "" {
+		id, err := strconv.ParseUint(rawID, 10, 64)
+		if err != nil {
+			http.Error(w, "invalid provider_router id", http.StatusBadRequest)
 			return
 		}
 		found := -1
@@ -168,7 +194,7 @@ func (a *App) feedHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 		}
-		if found < 0 {
+		if found == -1 {
 			http.NotFound(w, r)
 			return
 		}
@@ -177,9 +203,10 @@ func (a *App) feedHandler(w http.ResponseWriter, r *http.Request) {
 			selected = items[(found+1)%len(items)]
 		}
 	}
-	a.render(w, "feed.html", map[string]any{"Router": selected, "Title": "Лента маршрутизаторов"})
+	a.render(w, "feed.html", map[string]any{"ProviderRouter": selected, "Title": "Лента маршрутизаторов"})
 }
-func (a *App) draftHandler(w http.ResponseWriter, r *http.Request) {
+
+func (a *providerRoutersApp) draftHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		methodNotAllowed(w)
 		return
@@ -189,19 +216,20 @@ func (a *App) draftHandler(w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	var router Router
-	err = a.db.Preload("Likes").Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&router).Error
+	var providerRouter ProviderRouter
+	err = a.db.Preload("Likes").Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&providerRouter).Error
 	page := draftPage{Error: r.URL.Query().Get("error")}
 	if err == nil {
-		view := toView(router)
-		page.Router = &view
+		view := a.toView(providerRouter)
+		page.ProviderRouter = &view
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		serverError(w, err)
 		return
 	}
 	a.render(w, "draft.html", page)
 }
-func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
+
+func (a *providerRoutersApp) createDraftHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		methodNotAllowed(w)
 		return
@@ -212,18 +240,20 @@ func (a *App) createDraftHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := strings.TrimSpace(r.FormValue("name"))
-	if name == "" {
-		http.Redirect(w, r, "/routers/draft?error=Введите+название", 303)
+	bandwidth, cost, valid := subjectNumbersFromForm(r)
+	if name == "" || !valid {
+		http.Redirect(w, r, "/provider_routers/draft?error=Заполните+название,+пропускную+способность+и+стоимость", http.StatusSeeOther)
 		return
 	}
-	router := Router{Name: name, Description: "", Status: statusDraft, ImageURL: defaultImageURL, VideoURL: defaultVideoURL, RouterType: "residential", Location: "", MasterRouterName: "", CreatedByID: creator.ID}
-	if err := a.db.Create(&router).Error; err != nil {
-		http.Redirect(w, r, "/routers/draft?error=У+вас+уже+есть+черновик", 303)
+	providerRouter := ProviderRouter{Name: name, Description: "Новый маршрутизатор провайдера.", Status: statusDraft, ImageKey: defaultImageKey, VideoKey: defaultVideoKey, RouterType: "residential", BandwidthMbps: bandwidth, CostRub: cost, CreatedByID: creator.ID}
+	if err := a.db.Create(&providerRouter).Error; err != nil {
+		http.Redirect(w, r, "/provider_routers/draft?error=У+вас+уже+есть+черновик", http.StatusSeeOther)
 		return
 	}
-	http.Redirect(w, r, "/routers/draft", 303)
+	http.Redirect(w, r, "/provider_routers/draft", http.StatusSeeOther)
 }
-func (a *App) publishDraftHandler(w http.ResponseWriter, r *http.Request) {
+
+func (a *providerRoutersApp) publishDraftHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		methodNotAllowed(w)
 		return
@@ -233,93 +263,111 @@ func (a *App) publishDraftHandler(w http.ResponseWriter, r *http.Request) {
 		serverError(w, err)
 		return
 	}
-	var router Router
-	if err := a.db.Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&router).Error; err != nil {
-		http.Redirect(w, r, "/routers/draft?error=Черновик+не+найден", 303)
+	var providerRouter ProviderRouter
+	if err := a.db.Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&providerRouter).Error; err != nil {
+		http.Redirect(w, r, "/provider_routers/draft?error=Черновик+не+найден", http.StatusSeeOther)
 		return
 	}
-	throughput, power, ports, valid := numbersFromForm(r)
-	if !valid || strings.TrimSpace(r.FormValue("description")) == "" {
-		http.Redirect(w, r, "/routers/draft?error=Заполните+описание+и+числовые+поля", 303)
+	bandwidth, cost, valid := subjectNumbersFromForm(r)
+	if !valid {
+		http.Redirect(w, r, "/provider_routers/draft?error=Введите+корректные+числа", http.StatusSeeOther)
 		return
 	}
 	now := time.Now()
-	changes := map[string]any{"description": strings.TrimSpace(r.FormValue("description")), "router_type": r.FormValue("routerType"), "throughput_mbps": throughput, "power_consumption_w": power, "port_count": ports, "location": strings.TrimSpace(r.FormValue("location")), "master_router_name": strings.TrimSpace(r.FormValue("masterRouterName")), "status": statusPublished, "published_at": now}
-	if err := a.db.Model(&router).Updates(changes).Error; err != nil {
+	changes := map[string]any{"bandwidth_mbps": bandwidth, "cost_rub": cost, "status": statusPublished, "published_at": now}
+	if err := a.db.Model(&providerRouter).Updates(changes).Error; err != nil {
 		serverError(w, err)
 		return
 	}
-	http.Redirect(w, r, "/routers/feed?id="+strconv.FormatUint(uint64(router.ID), 10), 303)
+	http.Redirect(w, r, "/provider_routers/feed?id="+strconv.FormatUint(uint64(providerRouter.ID), 10), http.StatusSeeOther)
 }
-func (a *App) routerActionHandler(w http.ResponseWriter, r *http.Request) {
+
+// providerRouterActionHandler intentionally uses SQL UPDATE for logical deletion in Lab 2.
+func (a *providerRoutersApp) providerRouterActionHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost || !strings.HasSuffix(r.URL.Path, "/delete") {
 		methodNotAllowed(w)
 		return
 	}
-	raw := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/routers/"), "/delete")
-	id, err := strconv.ParseUint(raw, 10, 64)
+	rawID := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/provider_routers/"), "/delete")
+	id, err := strconv.ParseUint(rawID, 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	result := a.db.Exec("UPDATE routers SET status = ? WHERE id = ? AND status = ?", statusDeleted, uint(id), statusPublished)
+	result := a.db.Exec("UPDATE provider_routers SET status = ? WHERE id = ? AND status = ?", statusDeleted, uint(id), statusPublished)
 	if result.Error != nil {
 		serverError(w, result.Error)
 		return
 	}
-	http.Redirect(w, r, "/routers", 303)
+	http.Redirect(w, r, "/provider_routers", http.StatusSeeOther)
 }
-func (a *App) gridHandler(w http.ResponseWriter, r *http.Request) {
+
+func (a *providerRoutersApp) gridHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		methodNotAllowed(w)
 		return
 	}
-	raw := strings.TrimSpace(r.URL.Query().Get("minThroughputMbps"))
+	rawBandwidth := strings.TrimSpace(r.URL.Query().Get("minBandwidthMbps"))
 	minimum := 0
-	if raw != "" {
-		value, err := strconv.Atoi(raw)
+	if rawBandwidth != "" {
+		value, err := strconv.Atoi(rawBandwidth)
 		if err != nil || value < 0 {
-			http.Error(w, "minThroughputMbps must be a non-negative integer", 400)
+			http.Error(w, "minBandwidthMbps must be a non-negative integer", http.StatusBadRequest)
 			return
 		}
 		minimum = value
 	}
-	items, err := a.publishedRouters(minimum)
+	items, err := a.publishedProviderRouters(minimum)
 	if err != nil {
 		serverError(w, err)
 		return
 	}
-	a.render(w, "grid.html", gridPage{Routers: items, MinThroughput: raw})
+	a.render(w, "grid.html", gridPage{ProviderRouters: items, MinBandwidth: rawBandwidth})
 }
-func toViews(items []Router) []RouterView {
-	views := make([]RouterView, 0, len(items))
-	for _, router := range items {
-		views = append(views, toView(router))
+
+func (a *providerRoutersApp) toViews(items []ProviderRouter) []ProviderRouterView {
+	views := make([]ProviderRouterView, 0, len(items))
+	for _, item := range items {
+		views = append(views, a.toView(item))
 	}
 	return views
 }
-func toView(router Router) RouterView {
-	if strings.TrimSpace(router.ImageURL) == "" {
-		router.ImageURL = defaultImageURL
+
+func (a *providerRoutersApp) toView(providerRouter ProviderRouter) ProviderRouterView {
+	if strings.TrimSpace(providerRouter.ImageKey) == "" {
+		providerRouter.ImageKey = defaultImageKey
 	}
-	if strings.TrimSpace(router.VideoURL) == "" {
-		router.VideoURL = defaultVideoURL
+	if strings.TrimSpace(providerRouter.VideoKey) == "" {
+		providerRouter.VideoKey = defaultVideoKey
 	}
-	return RouterView{Router: router, Likes: len(router.Likes)}
+	return ProviderRouterView{ProviderRouter: providerRouter, ImageURL: a.mediaURL + "/" + providerRouter.ImageKey, VideoURL: a.mediaURL + "/" + providerRouter.VideoKey, Likes: len(providerRouter.Likes)}
 }
-func numbersFromForm(r *http.Request) (int, int, int, bool) {
-	a, e1 := strconv.Atoi(r.FormValue("throughputMbps"))
-	b, e2 := strconv.Atoi(r.FormValue("powerConsumptionW"))
-	c, e3 := strconv.Atoi(r.FormValue("portCount"))
-	return a, b, c, e1 == nil && e2 == nil && e3 == nil && a >= 0 && b >= 0 && c >= 0
+
+func (r ProviderRouterView) BandwidthLabel() string {
+	return fmt.Sprintf("%d Мбит/с", r.BandwidthMbps)
 }
+func (r ProviderRouterView) CostLabel() string { return fmt.Sprintf("%d ₽", r.CostRub) }
+func (r ProviderRouterView) ShortDescription() string {
+	letters := []rune(r.Description)
+	if len(letters) <= 92 {
+		return r.Description
+	}
+	return string(letters[:92]) + "…"
+}
+
+func subjectNumbersFromForm(r *http.Request) (int, int, bool) {
+	bandwidth, bandwidthErr := strconv.Atoi(r.FormValue("bandwidthMbps"))
+	cost, costErr := strconv.Atoi(r.FormValue("costRub"))
+	return bandwidth, cost, bandwidthErr == nil && costErr == nil && bandwidth >= 0 && cost >= 0
+}
+
 func envOr(key, fallback string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
 	return fallback
 }
-func (a *App) render(w http.ResponseWriter, name string, data any) {
+func (a *providerRoutersApp) render(w http.ResponseWriter, name string, data any) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := a.templates.ExecuteTemplate(w, name, data); err != nil {
 		serverError(w, err)
@@ -330,5 +378,5 @@ func methodNotAllowed(w http.ResponseWriter) {
 }
 func serverError(w http.ResponseWriter, err error) {
 	log.Printf("server error: %v", err)
-	http.Error(w, "internal server error", 500)
+	http.Error(w, "internal server error", http.StatusInternalServerError)
 }
