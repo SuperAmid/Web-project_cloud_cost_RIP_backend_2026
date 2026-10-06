@@ -1,9 +1,12 @@
-# Скриншоты ЛР2, которые снимаются вручную
+# Скриншоты для ЛР‑2
 
-1. Откройте `http://localhost:8081`, войдите в Adminer и покажите три таблицы: `provider_users`, `routers`, `router_likes`.
-2. В Adminer выполните `SELECT id, name, status FROM routers ORDER BY id;` до и после логического удаления через кнопку плитки.
-3. В браузере откройте ленту, черновик и плитку; в DevTools → Network сохраните один GET и один POST.
-4. В DevTools → Response откройте HTML черновика, созданного через «Далее»: в нём должны быть `/media/routers/draft.svg` и `/media/videos/draft-loop.mp4`.
-5. В редакторе покажите модели `ProviderUser`, `Router`, `RouterLike`; ORM-обработчики `publishedRouters`, `createDraftHandler`, `publishDraftHandler`; и raw SQL `UPDATE` в `routerActionHandler`.
+Снимите их после запуска приложения и Docker:
 
-Снимки интерфейса, которые уже были сохранены до переноса, находятся в безопасном локальном Git bundle; не добавляйте поддельные изображения вместо демонстрации работающего приложения.
+1. Adminer: таблица `provider_routers`, статусы `published`, `draft`, `deleted`.
+2. Adminer: `SELECT * FROM provider_routers WHERE status = 'published'`.
+3. Лента трёх опубликованных маршрутизаторов через параметр `id`.
+4. Страница добавления: фото, видео, название, пропускная способность и стоимость.
+5. Плитка до фильтра и после фильтра слайдером.
+6. Создание черновика, публикация и обновлённый `SELECT`.
+7. Логическое удаление: кнопка в приложении, SQL `UPDATE` в коде и результат в Adminer.
+8. ER-схема в StarUML с таблицами `provider_router_users`, `provider_routers`, `provider_router_likes`.

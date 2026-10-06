@@ -1,59 +1,54 @@
-# Provider Router Network — РИП ЛР2
+# provider_routers — ЛР‑2
 
-Лабораторная работа №2 по предметной области «Электронные устройства и электричество», вариант 15. Интерфейс показывает маршрутизаторы провайдера: центральный, промежуточный и жилые конечные узлы. Расчёт нагрузки и заявки намеренно не реализованы: это задачи следующих лабораторных.
+Лабораторная работа №2: PostgreSQL, GORM и серверные шаблоны для темы «Маршрутизаторы провайдера». Единое имя проекта, таблиц, модели и URL — `provider_routers`.
 
-## Реализовано
+## Предметная область и интерфейс
 
-- Go `net/http`, GORM, PostgreSQL и серверные HTML-шаблоны; JavaScript отсутствует.
-- Три предметные таблицы: `routers`, `provider_users`, `router_likes`; versioned SQL-миграции находятся в `migrations/`.
-- Ровно три GET-маршрута: лента, черновик, плитка с серверным числовым фильтром; три POST: создание черновика, публикация, логическое удаление.
-- Создание и публикация используют ORM; удаление выполняется явным SQL `UPDATE` статуса.
-- Mobile-first CSS в отдельном файле, общая навигация из трёх вкладок.
-- Docker Compose с Minio и инициализацией публичного bucket `provider-media`.
+У маршрутизатора только два тематических параметра: пропускная способность (Мбит/с) и стоимость (₽). Все кнопки красные и с небольшим скруглением; карточки белые с серой границей; нижняя навигация фиолетовая.
+
+- лента показывает опубликованную запись, короткое описание в две строки и нативное «Ещё»;
+- плитка фильтруется слайдером минимальной пропускной способности;
+- в добавлении доступны фото и видео из проводника, но ЛР‑2 не загружает их: используются отдельные ключи медиа по умолчанию из MinIO;
+- новый черновик и публикация выполняются через GORM; логическое удаление — явным SQL `UPDATE`.
 
 ## Запуск
-
-Требования: Go 1.24+ и Docker Desktop.
 
 ```powershell
 docker compose up -d
 go run .
 ```
 
-Откройте `http://localhost:8080/routers/feed`. PostgreSQL опубликован на `localhost:5433`. Adminer: `http://localhost:8081` (System: PostgreSQL, Server: `postgres`, User: `router_user`, Password: `router_password`, Database: `provider_network`). Minio Console: `http://localhost:9001` (`minioadmin` / `minioadmin`, только для локальной демонстрации).
+Откройте `http://localhost:8080/provider_routers/feed`.
 
-Четыре коротких MP4 и SVG-превью хранятся в `assets/provider-media/`; команда `docker compose up -d` автоматически загружает их в bucket `provider-media`.
+PostgreSQL: `localhost:5433`, БД `provider_routers`, пользователь `provider_routers_user`, пароль `provider_routers_password`. Adminer: `http://localhost:8081`. MinIO Console: `http://localhost:9001` (`minioadmin` / `minioadmin`).
 
-## Миграции и начальные данные
+## Миграции и модель
 
-В Adminer сначала выполните содержимое `migrations/001_init.up.sql`, затем импортируйте `db/seed.sql`. Seed добавляет пользователей, опубликованные, черновой и удалённый маршрутизаторы, а также связи лайков. В миграции нет каскадного удаления и есть ограничение: один создатель — не более одного `draft`.
+Версионированные SQL-файлы лежат в `migrations/`, начальные данные — в `db/seed.sql`. В БД три таблицы:
 
-ER-экспорт находится в `docs/lab2-er-diagram.svg`. Для строгой сдачи остаётся вручную сохранить настоящий файл StarUML `.mdj`: SVG не является его заменой.
+- `provider_router_users`;
+- `provider_routers`;
+- `provider_router_likes`.
 
-## Проверка GET
+В `provider_routers` отдельно хранятся `image_key` и `video_key`; связи защищены внешними ключами `RESTRICT`. Частичный уникальный индекс допускает только один `draft` на создателя.
 
-| Что | URL |
+## Маршруты
+
+| Экран или действие | URL |
 | --- | --- |
-| Лента, первый опубликованный узел | `http://localhost:8080/routers/feed` |
-| Лента по ID | `http://localhost:8080/routers/feed?id=102` |
-| Следующий опубликованный узел | `http://localhost:8080/routers/feed?id=102&next=true` |
-| Черновик | `http://localhost:8080/routers/draft` |
-| Плитка | `http://localhost:8080/routers` |
-| Фильтр пропускной способности | `http://localhost:8080/routers?minThroughputMbps=10000` |
+| Лента | `/provider_routers/feed` |
+| Лента по ID | `/provider_routers/feed?id=102` |
+| Следующий | `/provider_routers/feed?id=102&next=true` |
+| Добавление/черновик | `/provider_routers/draft` |
+| Создать черновик | `POST /provider_routers/draft/create` |
+| Опубликовать | `POST /provider_routers/draft/publish` |
+| Плитка и фильтр | `/provider_routers?minBandwidthMbps=10000` |
+| Логически удалить | `POST /provider_routers/{id}/delete` |
 
-POST-сценарии: откройте `/routers/draft`, укажите название и нажмите «Далее»; затем заполните черновик и нажмите «Опубликовать». На странице плитки используйте «Логически удалить». Новые URL изображения и видео в ЛР2 намеренно не отправляются: используется SSR-медиа по умолчанию.
-
-В demo-данных: 101 — центральный, 102 — промежуточный, 103 — жилой опубликованные маршрутизаторы; 104 — черновик; 105 — удалённый и в UI не выводится.
-
-## Media URL
-
-По умолчанию URL строятся из `http://localhost:9000/provider-media`. Для другого хоста Minio задайте `MINIO_PUBLIC_URL`, например:
+## Проверка
 
 ```powershell
-$env:MINIO_PUBLIC_URL = 'http://localhost:9000/provider-media'
-go run .
+go test -count=1 ./...
 ```
 
-## Документация и показ
-
-Сценарий — в `DEMO.md`, список реальных ручных скриншотов — в `MANUAL_SCREENSHOTS.md`, контрольные вопросы — в `docs/control-questions-lab2.md`.
+ER-описание: `docs/lab2-er-diagram.md`; SVG-схема: `docs/lab2-er-diagram.svg`. Для сдачи в StarUML нужно сохранить настоящий `.mdj` — SVG не является его заменой.
