@@ -1,3 +1,5 @@
+name: provider-router
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -14,6 +16,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
   adminer:
     image: adminer:latest
     ports:
@@ -21,8 +24,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
@@ -32,17 +36,23 @@ services:
       - "9001:9001"
     volumes:
       - minio-data:/data
+
   minio-init:
-    image: minio/mc:latest
+    image: quay.io/minio/mc:latest
     depends_on:
       - minio
     volumes:
       - ./assets:/assets:ro
     entrypoint: >
-      /bin/sh -c "until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done;
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done;
       mc mb --ignore-existing local/provider-media;
       mc anonymous set download local/provider-media;
-      mc cp --recursive /assets/provider-media/ local/provider-media/"
+      mc cp --recursive /assets/provider-media/ local/provider-media/;
+      mc anonymous set download local/provider-media;
+      exit 0
+      "
+
 volumes:
   minio-data:
   postgres-data:
