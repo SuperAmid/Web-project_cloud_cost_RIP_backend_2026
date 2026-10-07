@@ -1,1 +1,71 @@
-{{define "grid.html"}}<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Маршрутизаторы</title><link rel="stylesheet" href="/static/styles.css"></head><body><main class="phone-shell"><header class="page-header"><p class="eyebrow">Сеть провайдера · ЛР2</p><h1>Маршрутизаторы</h1><p>Только опубликованные узлы. Логическое удаление меняет статус в PostgreSQL.</p></header><form class="filter-form" method="get" action="/provider_routers"><label for="bandwidth">Мин. пропускная способность: <output>{{if .MinBandwidth}}{{.MinBandwidth}}{{else}}0{{end}}</output> Мбит/с</label><input id="bandwidth" name="minBandwidthMbps" type="range" min="0" max="100000" step="1000" value="{{if .MinBandwidth}}{{.MinBandwidth}}{{else}}0{{end}}"><button class="action-button" type="submit">Фильтровать</button></form><section class="router-grid">{{range .ProviderRouters}}<article class="router-tile"><a href="/provider_routers/feed?id={{.ID}}"><img src="{{.ImageURL}}" alt="{{.Name}}"><div><p class="tile-type">{{.RouterType}}</p><h2>{{.Name}}</h2><p>{{.BandwidthLabel}}</p><p>{{.CostLabel}}</p><span>♥ {{.Likes}}</span></div></a><form method="post" action="/provider_routers/{{.ID}}/delete"><button class="delete-button" type="submit">Логически удалить</button></form></article>{{else}}<p class="empty-state">Маршрутизаторы с таким значением не найдены.</p>{{end}}</section></main>{{template "nav" .}}</body></html>{{end}}
+{{ define "grid.html" }}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Маршрутизаторы</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="page-header">
+      <p class="eyebrow">Сеть провайдера · ЛР2</p>
+      <h1>Маршрутизаторы</h1>
+      <p>
+        Только опубликованные узлы. Логическое удаление меняет статус
+        в PostgreSQL.
+      </p>
+    </header>
+
+    <form class="filter-form" method="get" action="/provider_routers">
+      <label for="bandwidth">
+        Мин. пропускная способность:
+        <output>{{ if .MinBandwidth }}{{ .MinBandwidth }}{{ else }}0{{ end }}</output>
+        Мбит/с
+      </label>
+
+      <input
+        id="bandwidth"
+        name="minBandwidthMbps"
+        type="range"
+        min="0"
+        max="100000"
+        step="1000"
+        value="{{ if .MinBandwidth }}{{ .MinBandwidth }}{{ else }}0{{ end }}"
+      >
+
+      <button class="action-button" type="submit">Фильтровать</button>
+    </form>
+
+    <section class="router-grid">
+      {{ range .ProviderRouters }}
+        <article class="router-tile">
+          <a href="/provider_routers/feed?id={{ .ID }}">
+            <img src="{{ .ImageURL }}" alt="{{ .Name }}">
+
+            <div>
+              <p class="tile-type">{{ .RouterType }}</p>
+              <h2>{{ .Name }}</h2>
+              <p>{{ .BandwidthLabel }}</p>
+              <p>{{ .CostLabel }}</p>
+              <span>♥ {{ .Likes }}</span>
+            </div>
+          </a>
+
+          <form method="post" action="/provider_routers/{{ .ID }}/delete">
+            <button class="delete-button" type="submit">Логически удалить</button>
+          </form>
+        </article>
+      {{ else }}
+        <p class="empty-state">
+          Маршрутизаторы с таким значением не найдены.
+        </p>
+      {{ end }}
+    </section>
+  </main>
+
+  {{ template "nav" . }}
+</body>
+</html>
+{{ end }}
