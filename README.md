@@ -10,7 +10,8 @@
 
 - Go;
 - серверная HTML-шаблонизация (SSR);
-- PostgreSQL, Adminer и MinIO в Docker — на этапе лабораторной работы №2.
+- PostgreSQL, Adminer и MinIO в Docker — с лабораторной работы №2;
+- REST API (JSON) с ORM GORM, проверка через Postman/Insomnia — с лабораторной работы №3.
 
 ## Лабораторные работы
 
@@ -18,7 +19,7 @@
 | --- | --- |
 | [`ssr-design`](../../tree/ssr-design) | ЛР1: дизайн, SSR, in-memory коллекция маршрутизаторов и MinIO. |
 | [`database-orm`](../../tree/database-orm) | ЛР2: PostgreSQL, Adminer, ORM, миграции и логическое удаление. |
-| `rest-api` | Планируемая ЛР3: веб-сервис. |
+| [`web-service`](../../tree/web-service) | ЛР3: веб-сервис REST API — 10 методов, загрузка фото и видео в MinIO, лайки, регистрация. |
 | `auth-sessions` | Планируемая ЛР4: аутентификация и сессии. |
 
 Гаджиев Амид Гахраманович, студент ИУ5Ц-74Б.
