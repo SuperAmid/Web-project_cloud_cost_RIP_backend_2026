@@ -1,0 +1,322 @@
+package handler
+
+import (
+	"errors"
+	"log"
+	"mime/multipart"
+	"net/http"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+
+	"provider_routers/internal/ds"
+	"provider_routers/internal/repository"
+	"provider_routers/internal/serializer"
+)
+
+// currentUserID — id создателя из функции-singleton (авторизация появится в ЛР4).
+func (h *Handler) currentUserID(w http.ResponseWriter) (uint, bool) {
+	user, err := h.repo.CurrentProviderRouterUser()
+	if err != nil {
+		log.Printf("current user: %v", err)
+		writeError(w, http.StatusInternalServerError, "текущий пользователь не найден в БД")
+		return 0, false
+	}
+	return user.ID, true
+}
+
+func (h *Handler) toDraft(item ds.ProviderRouter) serializer.ProviderRouterDraft {
+	return serializer.ProviderRouterDraft{
+		ID:            item.ID,
+		Name:          item.Name,
+		Description:   item.Description,
+		Status:        item.Status,
+		RouterType:    item.RouterType,
+		BandwidthMbps: item.BandwidthMbps,
+		CostRub:       item.CostRub,
+		ImageKey:      item.ImageKey,
+		VideoKey:      item.VideoKey,
+		ImageURL:      h.repo.MediaURL(item.ImageKey, repository.DefaultImageKey),
+		VideoURL:      h.repo.MediaURL(item.VideoKey, repository.DefaultVideoKey),
+		CreatedAt:     item.CreatedAt,
+		PublishedAt:   item.PublishedAt,
+	}
+}
+
+// GetProviderRouters — GET /api/provider_routers?min_bandwidth_mbps=&max_cost_rub=
+func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	var filter repository.ProviderRouterFilter
+	var err error
+	if filter.MinBandwidthMbps, err = optionalNonNegativeInt(r, "min_bandwidth_mbps"); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if filter.MaxCostRub, err = optionalNonNegativeInt(r, "max_cost_rub"); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	rows, err := h.repo.ListProviderRouters(userID, filter)
+	if err != nil {
+		writeRepositoryError(w, err, nil)
+		return
+	}
+	items := make([]serializer.ProviderRouterListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, serializer.ProviderRouterListItem{
+			ID:            row.ID,
+			Name:          row.Name,
+			Description:   row.Description,
+			RouterType:    row.RouterType,
+			BandwidthMbps: row.BandwidthMbps,
+			CostRub:       row.CostRub,
+			ImageURL:      h.repo.MediaURL(row.ImageKey, repository.DefaultImageKey),
+			VideoURL:      h.repo.MediaURL(row.VideoKey, repository.DefaultVideoKey),
+			LikesCount:    row.LikesCount,
+			IsOwn:         boolToInt(row.CreatedByID == userID),
+			PublishedAt:   row.PublishedAt,
+		})
+	}
+	writeJSON(w, http.StatusOK, items)
+}
+
+// GetProviderRouterFeed — GET /api/provider_routers/feed[?id=102[&next=true]]
+func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	var id *uint
+	if raw := strings.TrimSpace(r.URL.Query().Get("id")); raw != "" {
+		parsed, err := strconv.ParseUint(raw, 10, 32)
+		if err != nil || parsed == 0 {
+			writeError(w, http.StatusBadRequest, "id должен быть положительным целым числом")
+			return
+		}
+		value := uint(parsed)
+		id = &value
+	}
+	next := false
+	if raw := r.URL.Query().Get("next"); raw != "" {
+		parsed, err := strconv.ParseBool(raw)
+		if err != nil {
+			writeError(w, http.StatusBadRequest, "next должен быть true или false")
+			return
+		}
+		next = parsed
+	}
+	if next && id == nil {
+		writeError(w, http.StatusBadRequest, "next=true требует параметр id")
+		return
+	}
+	row, err := h.repo.GetFeedProviderRouter(userID, id, next)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{repository.ErrNotFound: "опубликованный маршрутизатор не найден"})
+		return
+	}
+	writeJSON(w, http.StatusOK, serializer.ProviderRouterFeedItem{
+		ID:            row.ID,
+		Name:          row.Name,
+		Description:   row.Description,
+		RouterType:    row.RouterType,
+		BandwidthMbps: row.BandwidthMbps,
+		CostRub:       row.CostRub,
+		ImageURL:      h.repo.MediaURL(row.ImageKey, repository.DefaultImageKey),
+		VideoURL:      h.repo.MediaURL(row.VideoKey, repository.DefaultVideoKey),
+		LikesCount:    row.LikesCount,
+		IsLiked:       boolToInt(row.IsLiked),
+		CreatorName:   row.CreatorName,
+		PublishedAt:   row.PublishedAt,
+	})
+}
+
+// GetProviderRouterDraft — GET /api/provider_routers/draft (id не указывается)
+func (h *Handler) GetProviderRouterDraft(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	draft, err := h.repo.GetDraftProviderRouter(userID)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{repository.ErrNotFound: "у пользователя нет черновика"})
+		return
+	}
+	writeJSON(w, http.StatusOK, h.toDraft(draft))
+}
+
+// CreateProviderRouter — POST /api/provider_routers (multipart/form-data: name, image, video)
+func (h *Handler) CreateProviderRouter(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 70<<20)
+	if err := r.ParseMultipartForm(8 << 20); err != nil {
+		writeError(w, http.StatusBadRequest, "ожидается multipart/form-data с полями name, image, video (не больше 70 МБ)")
+		return
+	}
+	defer r.MultipartForm.RemoveAll()
+	for field := range r.MultipartForm.Value {
+		if field != "name" {
+			writeError(w, http.StatusBadRequest, "поле "+field+" передавать нельзя: при создании указываются только name, image, video")
+			return
+		}
+	}
+	for field := range r.MultipartForm.File {
+		if field != "image" && field != "video" {
+			writeError(w, http.StatusBadRequest, "файл "+field+" не ожидается: допустимы image и video")
+			return
+		}
+	}
+	name := strings.TrimSpace(r.FormValue("name"))
+	if name == "" || utf8.RuneCountInString(name) > 120 {
+		writeError(w, http.StatusBadRequest, "name обязателен, не длиннее 120 символов")
+		return
+	}
+	image, err := singleFile(r.MultipartForm, "image")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	video, err := singleFile(r.MultipartForm, "video")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if _, _, err := repository.ProviderRouterImage.ValidateFile(image); err != nil {
+		writeError(w, http.StatusBadRequest, "image: "+err.Error())
+		return
+	}
+	if _, _, err := repository.ProviderRouterVideo.ValidateFile(video); err != nil {
+		writeError(w, http.StatusBadRequest, "video: "+err.Error())
+		return
+	}
+	created, err := h.repo.CreateDraftProviderRouter(r.Context(), userID, name, image, video)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{repository.ErrConflict: "у пользователя уже есть черновик — опубликуйте или удалите его"})
+		return
+	}
+	w.Header().Set("Location", "/api/provider_routers/draft")
+	writeJSON(w, http.StatusCreated, h.toDraft(created))
+}
+
+func singleFile(form *multipart.Form, field string) (*multipart.FileHeader, error) {
+	files := form.File[field]
+	if len(files) != 1 {
+		return nil, errors.New("нужно передать ровно один файл в поле " + field)
+	}
+	return files[0], nil
+}
+
+// PublishProviderRouter — PUT /api/provider_routers/{id}/publish
+func (h *Handler) PublishProviderRouter(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	id, err := pathID(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	var request serializer.ProviderRouterPublishRequest
+	if err := decodeJSON(r, &request); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	fields, err := validatePublish(request)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	published, err := h.repo.PublishProviderRouter(userID, id, fields)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{
+			repository.ErrNotFound:  "маршрутизатор не найден",
+			repository.ErrForbidden: "опубликовать можно только свой черновик",
+			repository.ErrConflict:  "опубликовать можно только запись в статусе draft",
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, h.toDraft(published))
+}
+
+func validatePublish(request serializer.ProviderRouterPublishRequest) (repository.ProviderRouterPublish, error) {
+	var fields repository.ProviderRouterPublish
+	if request.Description == nil || strings.TrimSpace(*request.Description) == "" {
+		return fields, errors.New("description обязателен")
+	}
+	fields.Description = strings.TrimSpace(*request.Description)
+	if utf8.RuneCountInString(fields.Description) > 500 {
+		return fields, errors.New("description не длиннее 500 символов")
+	}
+	if request.BandwidthMbps == nil || *request.BandwidthMbps <= 0 {
+		return fields, errors.New("bandwidth_mbps обязателен и должен быть больше 0")
+	}
+	if request.CostRub == nil || *request.CostRub <= 0 {
+		return fields, errors.New("cost_rub обязателен и должен быть больше 0")
+	}
+	fields.BandwidthMbps, fields.CostRub = *request.BandwidthMbps, *request.CostRub
+	fields.RouterType = "residential"
+	if request.RouterType != nil {
+		fields.RouterType = strings.TrimSpace(*request.RouterType)
+		if !ds.ProviderRouterTypes[fields.RouterType] {
+			return fields, errors.New("router_type: central, intermediate или residential")
+		}
+	}
+	return fields, nil
+}
+
+// DeleteProviderRouter — DELETE /api/provider_routers/{id} (только soft delete своей записи)
+func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	id, err := pathID(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	deleted, err := h.repo.DeleteProviderRouter(userID, id)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{
+			repository.ErrNotFound:  "маршрутизатор не найден",
+			repository.ErrForbidden: "удалить можно только свой маршрутизатор",
+		})
+		return
+	}
+	deleted.Status = ds.ProviderRouterStatusDeleted
+	writeJSON(w, http.StatusOK, h.toDraft(deleted))
+}
+
+// LikeProviderRouter — POST /api/provider_routers/{id}/like, тело {"like": 1} или {"like": 0}
+func (h *Handler) LikeProviderRouter(w http.ResponseWriter, r *http.Request) {
+	userID, ok := h.currentUserID(w)
+	if !ok {
+		return
+	}
+	id, err := pathID(r)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	var request serializer.ProviderRouterLikeRequest
+	if err := decodeJSON(r, &request); err != nil {
+		writeError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if request.Like == nil || (*request.Like != 0 && *request.Like != 1) {
+		writeError(w, http.StatusBadRequest, "like должен быть 0 (снять лайк) или 1 (поставить)")
+		return
+	}
+	likesCount, err := h.repo.SetProviderRouterLike(userID, id, *request.Like == 1)
+	if err != nil {
+		writeRepositoryError(w, err, map[error]string{repository.ErrNotFound: "опубликованный маршрутизатор не найден"})
+		return
+	}
+	writeJSON(w, http.StatusOK, serializer.ProviderRouterLikeResponse{ProviderRouterID: id, IsLiked: *request.Like, LikesCount: likesCount})
+}
