@@ -30,7 +30,3 @@
 | ER-диаграмма и скриншоты удалены | Возвращены: `.mdj` + `.png`, 17 скриншотов показа | `docs/` |
 | MinIO не скачивается (quay.io приватный) | `bitnamilegacy/minio` и `minio-client` по digest, `healthcheck`, `depends_on: service_healthy`, один `mc anonymous set` | `docker-compose.yml` |
 | README ссылался на удалённые файлы | Ссылки ведут на существующие файлы, добавлены HTTP-методы и таблицы | `README.md`, `docs/figma/README.md` |
-
-## Тесты
-
-`go test ./...` — `media_test.go`: подстановка медиа по умолчанию при пустом ключе и недоступном файле, вывод карточки с NULL-полями.

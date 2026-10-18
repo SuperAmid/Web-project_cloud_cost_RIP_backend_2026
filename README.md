@@ -70,12 +70,6 @@ go run .
 
 Каскадного удаления нет: все внешние ключи `ON UPDATE RESTRICT ON DELETE RESTRICT`. Частичный уникальный индекс `one_draft_provider_router_per_creator` — не больше одного черновика у пользователя.
 
-## Проверка
-
-```powershell
-go test ./...
-```
-
 ## Порядок показа (скриншоты `docs/screenshots/`)
 
 Сняты на чистой БД после `docker compose up -d` и `go run .`. SQL-результаты — `psql` (в Adminer те же запросы: «SQL-запрос»).
