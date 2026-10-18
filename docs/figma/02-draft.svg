@@ -25,7 +25,7 @@
     <text x="24" y="640" font-size="13" font-weight="bold">Стоимость, ₽</text>
     <rect x="24" y="648" width="342" height="36" rx="4" fill="#FFF" stroke="#B9B9B9"/>
   </g>
-  <rect x="16" y="706" width="90" height="42" rx="5" fill="#FF4F12"/>
+  <rect x="16" y="706" width="90" height="42" rx="5" fill="#E30613"/>
   <text x="38" y="733" font-family="Arial" font-size="15" font-weight="bold" fill="#FFF">Далее</text>
   <rect y="772" width="390" height="72" fill="#7700FF"/>
   <text x="49" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Лента</text><text x="158" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Добавление</text><text x="268" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Маршрутизаторы</text>
