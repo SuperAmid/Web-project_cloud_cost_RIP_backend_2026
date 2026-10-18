@@ -11,7 +11,7 @@ INSERT INTO provider_routers (id, name, description, status, image_key, video_ke
   (101, 'Core Backbone One', 'Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети.', 'published', 'provider_routers/core.svg', 'videos/core-loop.mp4', 100000, 980000, 2, CURRENT_TIMESTAMP),
   (102, 'North Ring Hub', 'Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль.', 'published', 'provider_routers/ring.svg', 'videos/ring-loop.mp4', 10000, 310000, 2, CURRENT_TIMESTAMP),
   (103, 'Harbor Residence Gateway', 'Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами.', 'published', 'provider_routers/residential.svg', 'videos/residential-loop.mp4', 1000, 72000, 2, CURRENT_TIMESTAMP),
-  (104, 'Riverside Residence Gateway', NULL, 'draft', 'provider_routers/draft.svg', 'videos/draft-loop.mp4', NULL, NULL, 2, NULL),
+  (104, 'Riverside Residence Gateway', NULL, 'draft', 'provider_routers/draft.jpg', 'videos/draft-loop.mp4', NULL, NULL, 2, NULL),
   (105, 'Legacy South Edge', 'Выведенный из эксплуатации пограничный маршрутизатор.', 'deleted', 'provider_routers/ring.svg', 'videos/ring-loop.mp4', 1000, 50000, 2, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 

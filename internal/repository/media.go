@@ -18,7 +18,7 @@ import (
 
 // Медиа по умолчанию лежат в бакете (их загружает minio-init из assets/).
 const (
-	DefaultImageKey = "provider_routers/draft.svg"
+	DefaultImageKey = "provider_routers/draft.jpg"
 	DefaultVideoKey = "videos/draft-loop.mp4"
 )
 
