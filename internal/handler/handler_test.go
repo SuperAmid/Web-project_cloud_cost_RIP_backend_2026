@@ -20,14 +20,11 @@ func TestDecodeJSONRejectsSystemFields(t *testing.T) {
 }
 
 func TestValidatePublish(t *testing.T) {
-	text, bandwidth, cost, badType := "Маршрутизатор", 1000, 50000, "core"
+	text, bandwidth, cost := "Маршрутизатор", 1000, 50000
 	if _, err := validatePublish(serializer.ProviderRouterPublishRequest{Description: &text, BandwidthMbps: &bandwidth, CostRub: &cost}); err != nil {
 		t.Fatalf("корректная публикация отклонена: %v", err)
 	}
 	if _, err := validatePublish(serializer.ProviderRouterPublishRequest{Description: &text, BandwidthMbps: &bandwidth}); err == nil {
 		t.Fatal("без cost_rub публикация должна отклоняться")
-	}
-	if _, err := validatePublish(serializer.ProviderRouterPublishRequest{Description: &text, BandwidthMbps: &bandwidth, CostRub: &cost, RouterType: &badType}); err == nil {
-		t.Fatal("неизвестный router_type должен отклоняться")
 	}
 }

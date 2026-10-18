@@ -42,6 +42,16 @@ var (
 	}
 )
 
+// MediaStorage — интерфейс хранилища файлов маршрутизаторов. Репозиторий зависит
+// от интерфейса, а не от MinIO напрямую; реализация — *Media.
+type MediaStorage interface {
+	Upload(ctx context.Context, kind MediaKind, header *multipart.FileHeader) (string, error)
+	Remove(ctx context.Context, key string)
+	URL(key, fallback string) string
+}
+
+var _ MediaStorage = (*Media)(nil)
+
 // Media — клиент MinIO для файлов маршрутизаторов.
 type Media struct {
 	client    *minio.Client

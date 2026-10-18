@@ -11,36 +11,29 @@ const (
 	ProviderRouterStatusDeleted   = "deleted"
 )
 
-// Допустимые типы маршрутизатора сети провайдера.
-var ProviderRouterTypes = map[string]bool{
-	"central":      true,
-	"intermediate": true,
-	"residential":  true,
-}
-
 // ProviderRouterUser — таблица provider_router_users.
 type ProviderRouterUser struct {
-	ID           uint      `gorm:"primaryKey"`
-	Email        string    `gorm:"size:120;unique;not null"`
-	DisplayName  string    `gorm:"size:80;not null"`
-	PasswordHash string    `gorm:"size:72;not null;default:''"`
-	CreatedAt    time.Time `gorm:"not null"`
+	ID           uint   `gorm:"primaryKey"`
+	Email        string `gorm:"size:120;unique;not null"`
+	DisplayName  string `gorm:"size:80;not null"`
+	PasswordHash string `gorm:"size:72;not null;default:''"`
 }
 
 func (ProviderRouterUser) TableName() string { return "provider_router_users" }
 
 // ProviderRouter — таблица provider_routers (услуга предметной области).
 // Поля по теме: BandwidthMbps (пропускная способность) и CostRub (стоимость).
+// Description, BandwidthMbps, CostRub и PublishedAt необязательные (NULL):
+// они заполняются только при публикации.
 type ProviderRouter struct {
 	ID            uint                 `gorm:"primaryKey"`
 	Name          string               `gorm:"size:120;not null"`
-	Description   string               `gorm:"size:500;not null;default:''"`
+	Description   *string              `gorm:"size:500"`
 	Status        string               `gorm:"size:12;index;not null"`
 	ImageKey      string               `gorm:"size:160;not null;default:''"`
 	VideoKey      string               `gorm:"size:160;not null;default:''"`
-	RouterType    string               `gorm:"size:24;not null;default:'residential'"`
-	BandwidthMbps int                  `gorm:"not null;default:0"`
-	CostRub       int                  `gorm:"not null;default:0"`
+	BandwidthMbps *int                 ``
+	CostRub       *int                 ``
 	CreatedAt     time.Time            `gorm:"not null"`
 	PublishedAt   *time.Time           // дата формирования (публикации)
 	CreatedByID   uint                 `gorm:"not null;index"`
@@ -50,11 +43,12 @@ type ProviderRouter struct {
 
 func (ProviderRouter) TableName() string { return "provider_routers" }
 
-// ProviderRouterLike — таблица м-м provider_router_likes (пользователь лайкнул маршрутизатор).
+// ProviderRouterLike — таблица м-м provider_router_likes: собственный первичный ключ
+// и уникальная пара (маршрутизатор, пользователь) — один лайк от пользователя.
 type ProviderRouterLike struct {
-	ProviderRouterID uint               `gorm:"primaryKey"`
-	UserID           uint               `gorm:"primaryKey"`
-	CreatedAt        time.Time          `gorm:"not null"`
+	ID               uint               `gorm:"primaryKey"`
+	ProviderRouterID uint               `gorm:"not null;uniqueIndex:provider_router_like_pair"`
+	UserID           uint               `gorm:"not null;uniqueIndex:provider_router_like_pair"`
 	ProviderRouter   ProviderRouter     `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 	User             ProviderRouterUser `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
 }

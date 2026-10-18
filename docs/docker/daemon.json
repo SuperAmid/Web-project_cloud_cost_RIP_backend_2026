@@ -1,0 +1,5 @@
+{
+  "registry-mirrors": ["https://mirror.gcr.io"],
+  "dns": ["192.168.50.1", "195.19.33.199"],
+  "mtu": 1400
+}

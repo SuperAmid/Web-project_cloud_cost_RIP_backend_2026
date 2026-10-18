@@ -11,7 +11,6 @@ import "time"
 // Указатели нужны, чтобы отличить «поле не передано» от нуля.
 type ProviderRouterPublishRequest struct {
 	Description   *string `json:"description"`
-	RouterType    *string `json:"router_type"`
 	BandwidthMbps *int    `json:"bandwidth_mbps"`
 	CostRub       *int    `json:"cost_rub"`
 }
@@ -41,7 +40,6 @@ type ProviderRouterListItem struct {
 	ID            uint       `json:"id"`
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
-	RouterType    string     `json:"router_type"`
 	BandwidthMbps int        `json:"bandwidth_mbps"`
 	CostRub       int        `json:"cost_rub"`
 	ImageURL      string     `json:"image_url"`
@@ -56,7 +54,6 @@ type ProviderRouterFeedItem struct {
 	ID            uint       `json:"id"`
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
-	RouterType    string     `json:"router_type"`
 	BandwidthMbps int        `json:"bandwidth_mbps"`
 	CostRub       int        `json:"cost_rub"`
 	ImageURL      string     `json:"image_url"`
@@ -68,14 +65,14 @@ type ProviderRouterFeedItem struct {
 }
 
 // ProviderRouterDraft — черновик или результат создания/публикации/удаления.
+// У черновика description, bandwidth_mbps, cost_rub и published_at — null.
 type ProviderRouterDraft struct {
 	ID            uint       `json:"id"`
 	Name          string     `json:"name"`
-	Description   string     `json:"description"`
+	Description   *string    `json:"description"`
 	Status        string     `json:"status"`
-	RouterType    string     `json:"router_type"`
-	BandwidthMbps int        `json:"bandwidth_mbps"`
-	CostRub       int        `json:"cost_rub"`
+	BandwidthMbps *int       `json:"bandwidth_mbps"`
+	CostRub       *int       `json:"cost_rub"`
 	ImageKey      string     `json:"image_key"`
 	VideoKey      string     `json:"video_key"`
 	ImageURL      string     `json:"image_url"`
@@ -93,10 +90,9 @@ type ProviderRouterLikeResponse struct {
 
 // ProviderRouterUserResponse — пользователь без хеша пароля.
 type ProviderRouterUserResponse struct {
-	ID          uint      `json:"id"`
-	Email       string    `json:"email"`
-	DisplayName string    `json:"display_name"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          uint   `json:"id"`
+	Email       string `json:"email"`
+	DisplayName string `json:"display_name"`
 }
 
 // ErrorResponse — единый формат ошибки.

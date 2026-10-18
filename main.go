@@ -30,13 +30,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := repo.MigrateAndSeed(); err != nil {
+	if err := repo.MigrateAndSeed("migrations"); err != nil {
 		log.Fatal(err)
 	}
 
 	server := &http.Server{
 		Addr:              cfg.Addr,
-		Handler:           api.NewRouter(handler.New(repo)),
+		Handler:           api.NewRouter(handler.New(repo, repo)),
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 	log.Printf("provider_routers API (ЛР3) слушает http://localhost%s/api", cfg.Addr)

@@ -12,26 +12,6 @@ import (
 	"provider_routers/internal/ds"
 )
 
-// ProviderRouterRow — опубликованный маршрутизатор вместе с вычисленными в БД
-// полями: числом лайков, лайком текущего пользователя и именем создателя.
-type ProviderRouterRow struct {
-	ID            uint
-	Name          string
-	Description   string
-	Status        string
-	ImageKey      string
-	VideoKey      string
-	RouterType    string
-	BandwidthMbps int
-	CostRub       int
-	CreatedAt     time.Time
-	PublishedAt   *time.Time
-	CreatedByID   uint
-	CreatorName   string
-	LikesCount    int64
-	IsLiked       bool
-}
-
 // ProviderRouterFilter — фильтры плитки; nil означает «не фильтровать».
 type ProviderRouterFilter struct {
 	MinBandwidthMbps *int
@@ -41,70 +21,62 @@ type ProviderRouterFilter struct {
 // ProviderRouterPublish — поля, которые создатель заполняет при публикации.
 type ProviderRouterPublish struct {
 	Description   string
-	RouterType    string
 	BandwidthMbps int
 	CostRub       int
 }
 
-// publishedProviderRouters — общий запрос: только опубликованные, с подсчётом лайков в БД.
-func (r *Repository) publishedProviderRouters(userID uint) *gorm.DB {
-	return r.db.Table("provider_routers AS pr").
-		Select(`pr.id, pr.name, pr.description, pr.status, pr.image_key, pr.video_key,
-			pr.router_type, pr.bandwidth_mbps, pr.cost_rub, pr.created_at, pr.published_at,
-			pr.created_by_id, u.display_name AS creator_name,
-			(SELECT COUNT(*) FROM provider_router_likes l WHERE l.provider_router_id = pr.id) AS likes_count,
-			EXISTS (SELECT 1 FROM provider_router_likes l WHERE l.provider_router_id = pr.id AND l.user_id = ?) AS is_liked`, userID).
-		Joins("JOIN provider_router_users u ON u.id = pr.created_by_id").
-		Where("pr.status = ?", ds.ProviderRouterStatusPublished)
+// published — общий запрос через ORM: только опубликованные, с лайками и создателем.
+func (r *Repository) published() *gorm.DB {
+	return r.db.Model(&ds.ProviderRouter{}).
+		Preload("Likes").
+		Preload("CreatedBy").
+		Where("status = ?", ds.ProviderRouterStatusPublished).
+		Order("id")
 }
 
-// ListProviderRouters — плитка с фильтрацией на стороне БД.
-func (r *Repository) ListProviderRouters(userID uint, filter ProviderRouterFilter) ([]ProviderRouterRow, error) {
-	query := r.publishedProviderRouters(userID)
+// ListProviderRouters — плитка; фильтры по полям по теме выполняются в БД.
+func (r *Repository) ListProviderRouters(filter ProviderRouterFilter) ([]ds.ProviderRouter, error) {
+	query := r.published()
 	if filter.MinBandwidthMbps != nil {
-		query = query.Where("pr.bandwidth_mbps >= ?", *filter.MinBandwidthMbps)
+		query = query.Where("bandwidth_mbps >= ?", *filter.MinBandwidthMbps)
 	}
 	if filter.MaxCostRub != nil {
-		query = query.Where("pr.cost_rub <= ?", *filter.MaxCostRub)
+		query = query.Where("cost_rub <= ?", *filter.MaxCostRub)
 	}
-	rows := []ProviderRouterRow{}
-	return rows, query.Order("pr.id").Scan(&rows).Error
+	items := []ds.ProviderRouter{}
+	return items, query.Find(&items).Error
 }
 
-// GetFeedProviderRouter возвращает ровно одну строку ленты из БД:
-// без id — первую; с id — эту; с id и next — следующую после id (по кругу).
-func (r *Repository) GetFeedProviderRouter(userID uint, id *uint, next bool) (ProviderRouterRow, error) {
-	query := r.publishedProviderRouters(userID).Order("pr.id").Limit(1)
+// GetFeedProviderRouter возвращает одну запись ленты (First → LIMIT 1):
+// без id — первую; с id — эту; с id и next — следующую после id (после последней — первую).
+func (r *Repository) GetFeedProviderRouter(id *uint, next bool) (ds.ProviderRouter, error) {
+	var item ds.ProviderRouter
+	var err error
 	switch {
-	case id != nil && next:
-		query = query.Where("pr.id > ?", *id)
-	case id != nil:
-		query = query.Where("pr.id = ?", *id)
-	}
-	var rows []ProviderRouterRow
-	if err := query.Scan(&rows).Error; err != nil {
-		return ProviderRouterRow{}, err
-	}
-	if len(rows) == 0 && id != nil && next {
-		// после последней карточки лента начинается сначала
-		if err := r.publishedProviderRouters(userID).Order("pr.id").Limit(1).Scan(&rows).Error; err != nil {
-			return ProviderRouterRow{}, err
+	case id == nil:
+		err = r.published().First(&item).Error
+	case next:
+		err = r.published().Where("id > ?", *id).First(&item).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			err = r.published().First(&item).Error
 		}
+	default:
+		err = r.published().Where("id = ?", *id).First(&item).Error
 	}
-	if len(rows) == 0 {
-		return ProviderRouterRow{}, ErrNotFound
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return item, ErrNotFound
 	}
-	return rows[0], nil
+	return item, err
 }
 
 // GetDraftProviderRouter — черновик пользователя (не более одного, id не нужен).
 func (r *Repository) GetDraftProviderRouter(userID uint) (ds.ProviderRouter, error) {
-	var providerRouter ds.ProviderRouter
-	err := r.db.Where("created_by_id = ? AND status = ?", userID, ds.ProviderRouterStatusDraft).First(&providerRouter).Error
+	var item ds.ProviderRouter
+	err := r.db.Where("created_by_id = ? AND status = ?", userID, ds.ProviderRouterStatusDraft).First(&item).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return providerRouter, ErrNotFound
+		return item, ErrNotFound
 	}
-	return providerRouter, err
+	return item, err
 }
 
 // CreateDraftProviderRouter создаёт черновик и сохраняет фото и видео в MinIO.
@@ -123,100 +95,104 @@ func (r *Repository) CreateDraftProviderRouter(ctx context.Context, userID uint,
 		r.media.Remove(ctx, imageKey)
 		return ds.ProviderRouter{}, err
 	}
-	providerRouter := ds.ProviderRouter{
+	item := ds.ProviderRouter{
 		Name:        name,
 		Status:      ds.ProviderRouterStatusDraft,
 		ImageKey:    imageKey,
 		VideoKey:    videoKey,
-		RouterType:  "residential",
 		CreatedByID: userID,
 	}
-	if err := r.db.Create(&providerRouter).Error; err != nil {
+	if err := r.db.Create(&item).Error; err != nil {
 		r.media.Remove(ctx, imageKey)
 		r.media.Remove(ctx, videoKey)
-		if errors.Is(err, gorm.ErrDuplicatedKey) { // сработал индекс «один черновик на создателя»
+		if errors.Is(err, gorm.ErrDuplicatedKey) { // индекс «один черновик на создателя»
 			return ds.ProviderRouter{}, ErrConflict
 		}
 		return ds.ProviderRouter{}, err
 	}
-	return providerRouter, nil
+	return item, nil
 }
 
-// lockOwnProviderRouter блокирует строку на время транзакции и проверяет владельца.
+// lockOwnProviderRouter блокирует строку (SELECT … FOR UPDATE) и проверяет владельца.
 func lockOwnProviderRouter(tx *gorm.DB, userID, id uint) (ds.ProviderRouter, error) {
-	var providerRouter ds.ProviderRouter
+	var item ds.ProviderRouter
 	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 		Where("id = ? AND status <> ?", id, ds.ProviderRouterStatusDeleted).
-		First(&providerRouter).Error
+		First(&item).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return providerRouter, ErrNotFound
+		return item, ErrNotFound
 	}
 	if err != nil {
-		return providerRouter, err
+		return item, err
 	}
-	if providerRouter.CreatedByID != userID {
-		return providerRouter, ErrForbidden
+	if item.CreatedByID != userID {
+		return item, ErrForbidden
 	}
-	return providerRouter, nil
+	return item, nil
 }
 
 // PublishProviderRouter: draft -> published. Дата публикации ставится на сервере.
 func (r *Repository) PublishProviderRouter(userID, id uint, fields ProviderRouterPublish) (ds.ProviderRouter, error) {
-	var providerRouter ds.ProviderRouter
+	var item ds.ProviderRouter
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		var err error
-		if providerRouter, err = lockOwnProviderRouter(tx, userID, id); err != nil {
+		if item, err = lockOwnProviderRouter(tx, userID, id); err != nil {
 			return err
 		}
-		if providerRouter.Status != ds.ProviderRouterStatusDraft {
+		if item.Status != ds.ProviderRouterStatusDraft {
 			return ErrConflict
 		}
 		now := time.Now()
-		return tx.Model(&providerRouter).Updates(map[string]any{
-			"description":    fields.Description,
-			"router_type":    fields.RouterType,
-			"bandwidth_mbps": fields.BandwidthMbps,
-			"cost_rub":       fields.CostRub,
-			"status":         ds.ProviderRouterStatusPublished,
-			"published_at":   now,
-		}).Error
+		item.Description = &fields.Description
+		item.BandwidthMbps = &fields.BandwidthMbps
+		item.CostRub = &fields.CostRub
+		item.Status = ds.ProviderRouterStatusPublished
+		item.PublishedAt = &now
+		return tx.Model(&item).Select("description", "bandwidth_mbps", "cost_rub", "status", "published_at").Updates(&item).Error
 	})
-	return providerRouter, err
+	return item, err
 }
 
 // DeleteProviderRouter — логическое удаление своей записи: draft|published -> deleted.
 func (r *Repository) DeleteProviderRouter(userID, id uint) (ds.ProviderRouter, error) {
-	var providerRouter ds.ProviderRouter
+	var item ds.ProviderRouter
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		var err error
-		if providerRouter, err = lockOwnProviderRouter(tx, userID, id); err != nil {
+		if item, err = lockOwnProviderRouter(tx, userID, id); err != nil {
 			return err
 		}
-		return tx.Model(&providerRouter).Update("status", ds.ProviderRouterStatusDeleted).Error
+		item.Status = ds.ProviderRouterStatusDeleted
+		return tx.Model(&item).Update("status", item.Status).Error
 	})
-	return providerRouter, err
+	return item, err
 }
 
 // SetProviderRouterLike ставит (like=true) или снимает лайк текущего пользователя.
 func (r *Repository) SetProviderRouterLike(userID, id uint, like bool) (int64, error) {
 	var likesCount int64
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		var count int64
-		if err := tx.Model(&ds.ProviderRouter{}).Where("id = ? AND status = ?", id, ds.ProviderRouterStatusPublished).Count(&count).Error; err != nil {
-			return err
-		}
-		if count == 0 {
+		var item ds.ProviderRouter
+		err := tx.Where("id = ? AND status = ?", id, ds.ProviderRouterStatusPublished).First(&item).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return ErrNotFound
 		}
-		likeRow := ds.ProviderRouterLike{ProviderRouterID: id, UserID: userID}
-		if like {
-			if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&likeRow).Error; err != nil {
-				return err
-			}
-		} else if err := tx.Where("provider_router_id = ? AND user_id = ?", id, userID).Delete(&ds.ProviderRouterLike{}).Error; err != nil {
+		if err != nil {
 			return err
 		}
-		return tx.Model(&ds.ProviderRouterLike{}).Where("provider_router_id = ?", id).Count(&likesCount).Error
+		if like {
+			row := ds.ProviderRouterLike{ProviderRouterID: id, UserID: userID}
+			err = tx.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "provider_router_id"}, {Name: "user_id"}},
+				DoNothing: true,
+			}).Create(&row).Error
+		} else {
+			err = tx.Where("provider_router_id = ? AND user_id = ?", id, userID).Delete(&ds.ProviderRouterLike{}).Error
+		}
+		if err != nil {
+			return err
+		}
+		likesCount = tx.Model(&item).Association("Likes").Count()
+		return nil
 	})
 	return likesCount, err
 }

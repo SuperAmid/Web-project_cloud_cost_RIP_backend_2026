@@ -15,7 +15,7 @@ import (
 )
 
 func toUserResponse(user ds.ProviderRouterUser) serializer.ProviderRouterUserResponse {
-	return serializer.ProviderRouterUserResponse{ID: user.ID, Email: user.Email, DisplayName: user.DisplayName, CreatedAt: user.CreatedAt}
+	return serializer.ProviderRouterUserResponse{ID: user.ID, Email: user.Email, DisplayName: user.DisplayName}
 }
 
 // RegisterProviderRouterUser — POST /api/provider_router_users/register
@@ -45,7 +45,7 @@ func (h *Handler) RegisterProviderRouterUser(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	user := ds.ProviderRouterUser{Email: email, DisplayName: displayName, PasswordHash: string(hash)}
-	if err := h.repo.CreateProviderRouterUser(&user); err != nil {
+	if err := h.users.CreateProviderRouterUser(&user); err != nil {
 		writeRepositoryError(w, err, map[error]string{repository.ErrConflict: "пользователь с таким email уже зарегистрирован"})
 		return
 	}
@@ -60,7 +60,7 @@ func (h *Handler) LoginProviderRouterUser(w http.ResponseWriter, r *http.Request
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	user, err := h.repo.FindProviderRouterUserByEmail(strings.ToLower(strings.TrimSpace(request.Email)))
+	user, err := h.users.FindProviderRouterUserByEmail(strings.ToLower(strings.TrimSpace(request.Email)))
 	if err == nil && user.PasswordHash != "" {
 		err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(request.Password))
 	} else if err == nil {

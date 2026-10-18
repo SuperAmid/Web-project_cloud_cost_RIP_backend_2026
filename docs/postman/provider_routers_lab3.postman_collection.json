@@ -160,7 +160,7 @@
             "description": "",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"router_type\": \"residential\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
+              "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
               "options": {
                 "raw": {
                   "language": "json"

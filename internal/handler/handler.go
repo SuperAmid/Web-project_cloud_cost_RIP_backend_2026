@@ -15,11 +15,15 @@ import (
 	"provider_routers/internal/serializer"
 )
 
+// Handler — обработчики двух доменов. Зависит только от интерфейсов.
 type Handler struct {
-	repo *repository.Repository
+	repo  ProviderRouterRepository
+	users ProviderRouterUserRepository
 }
 
-func New(repo *repository.Repository) *Handler { return &Handler{repo: repo} }
+func New(repo ProviderRouterRepository, users ProviderRouterUserRepository) *Handler {
+	return &Handler{repo: repo, users: users}
+}
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")

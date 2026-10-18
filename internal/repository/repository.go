@@ -18,25 +18,29 @@ var (
 	ErrConflict  = errors.New("conflict")  // 409
 )
 
+// Repository реализует интерфейсы handler.ProviderRouterRepository и
+// handler.ProviderRouterUserRepository. Файлы хранит через интерфейс MediaStorage.
 type Repository struct {
 	db    *gorm.DB
-	media *Media
+	media MediaStorage
 }
 
-func New(databaseURL string, media *Media) (*Repository, error) {
+func New(databaseURL string, media MediaStorage) (*Repository, error) {
 	db, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, err
 	}
-	return &Repository{db: db, media: media}, nil
+	return NewWithDB(db, media), nil
 }
 
-// MigrateAndSeed создаёт/обновляет таблицы и заполняет пустую БД начальными данными.
-func (r *Repository) MigrateAndSeed() error {
-	if err := r.db.AutoMigrate(&ds.ProviderRouterUser{}, &ds.ProviderRouter{}, &ds.ProviderRouterLike{}); err != nil {
-		return err
-	}
-	if err := r.db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS one_draft_provider_router_per_creator ON provider_routers (created_by_id) WHERE status = 'draft'").Error; err != nil {
+// NewWithDB — для тестов и случаев, когда соединение уже открыто.
+func NewWithDB(db *gorm.DB, media MediaStorage) *Repository {
+	return &Repository{db: db, media: media}
+}
+
+// MigrateAndSeed выполняет SQL-миграции из каталога dir и наполняет пустую БД.
+func (r *Repository) MigrateAndSeed(dir string) error {
+	if err := ApplyMigrations(r.db, dir); err != nil {
 		return err
 	}
 	var count int64
@@ -49,13 +53,17 @@ func (r *Repository) MigrateAndSeed() error {
 	if err := r.db.Create(&[]*ds.ProviderRouterUser{&student, &operator, &viewer}).Error; err != nil {
 		return err
 	}
+	// Черновик 104 принадлежит оператору, а не текущему пользователю: так при показе
+	// запрос «добавление» у студента сразу проходит, без предварительного удаления.
 	now := time.Now()
+	text := func(s string) *string { return &s }
+	num := func(n int) *int { return &n }
 	items := []ds.ProviderRouter{
-		{Name: "Core Backbone One", Description: "Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети.", Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/core.svg", VideoKey: "videos/core-loop.mp4", RouterType: "central", BandwidthMbps: 100000, CostRub: 980000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "North Ring Hub", Description: "Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль.", Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 10000, CostRub: 310000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Harbor Residence Gateway", Description: "Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами.", Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/residential.svg", VideoKey: "videos/residential-loop.mp4", RouterType: "residential", BandwidthMbps: 1000, CostRub: 72000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Riverside Residence Gateway", Description: "Черновик карточки маршрутизатора для следующего жилого дома.", Status: ds.ProviderRouterStatusDraft, ImageKey: DefaultImageKey, VideoKey: DefaultVideoKey, RouterType: "residential", BandwidthMbps: 1000, CostRub: 65000, CreatedByID: student.ID},
-		{Name: "Legacy South Edge", Description: "Выведенный из эксплуатации пограничный маршрутизатор.", Status: ds.ProviderRouterStatusDeleted, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 1000, CostRub: 50000, CreatedByID: operator.ID},
+		{Name: "Core Backbone One", Description: text("Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети."), Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/core.svg", VideoKey: "videos/core-loop.mp4", BandwidthMbps: num(100000), CostRub: num(980000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "North Ring Hub", Description: text("Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль."), Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", BandwidthMbps: num(10000), CostRub: num(310000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Harbor Residence Gateway", Description: text("Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами."), Status: ds.ProviderRouterStatusPublished, ImageKey: "provider_routers/residential.svg", VideoKey: "videos/residential-loop.mp4", BandwidthMbps: num(1000), CostRub: num(72000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Riverside Residence Gateway", Status: ds.ProviderRouterStatusDraft, ImageKey: DefaultImageKey, VideoKey: DefaultVideoKey, CreatedByID: operator.ID},
+		{Name: "Legacy South Edge", Description: text("Выведенный из эксплуатации пограничный маршрутизатор."), Status: ds.ProviderRouterStatusDeleted, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", BandwidthMbps: num(1000), CostRub: num(50000), CreatedByID: operator.ID, PublishedAt: &now},
 	}
 	if err := r.db.Create(&items).Error; err != nil {
 		return err

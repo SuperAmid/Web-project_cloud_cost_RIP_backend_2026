@@ -25,13 +25,29 @@ func (h *Handler) currentUserID(w http.ResponseWriter) (uint, bool) {
 	return user.ID, true
 }
 
+func deref[T any](value *T) T {
+	var zero T
+	if value == nil {
+		return zero
+	}
+	return *value
+}
+
+func likedBy(item ds.ProviderRouter, userID uint) bool {
+	for _, like := range item.Likes {
+		if like.UserID == userID {
+			return true
+		}
+	}
+	return false
+}
+
 func (h *Handler) toDraft(item ds.ProviderRouter) serializer.ProviderRouterDraft {
 	return serializer.ProviderRouterDraft{
 		ID:            item.ID,
 		Name:          item.Name,
 		Description:   item.Description,
 		Status:        item.Status,
-		RouterType:    item.RouterType,
 		BandwidthMbps: item.BandwidthMbps,
 		CostRub:       item.CostRub,
 		ImageKey:      item.ImageKey,
@@ -59,7 +75,7 @@ func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	rows, err := h.repo.ListProviderRouters(userID, filter)
+	rows, err := h.repo.ListProviderRouters(filter)
 	if err != nil {
 		writeRepositoryError(w, err, nil)
 		return
@@ -69,13 +85,12 @@ func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
 		items = append(items, serializer.ProviderRouterListItem{
 			ID:            row.ID,
 			Name:          row.Name,
-			Description:   row.Description,
-			RouterType:    row.RouterType,
-			BandwidthMbps: row.BandwidthMbps,
-			CostRub:       row.CostRub,
+			Description:   deref(row.Description),
+			BandwidthMbps: deref(row.BandwidthMbps),
+			CostRub:       deref(row.CostRub),
 			ImageURL:      h.repo.MediaURL(row.ImageKey, repository.DefaultImageKey),
 			VideoURL:      h.repo.MediaURL(row.VideoKey, repository.DefaultVideoKey),
-			LikesCount:    row.LikesCount,
+			LikesCount:    int64(len(row.Likes)),
 			IsOwn:         boolToInt(row.CreatedByID == userID),
 			PublishedAt:   row.PublishedAt,
 		})
@@ -112,7 +127,7 @@ func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) 
 		writeError(w, http.StatusBadRequest, "next=true требует параметр id")
 		return
 	}
-	row, err := h.repo.GetFeedProviderRouter(userID, id, next)
+	row, err := h.repo.GetFeedProviderRouter(id, next)
 	if err != nil {
 		writeRepositoryError(w, err, map[error]string{repository.ErrNotFound: "опубликованный маршрутизатор не найден"})
 		return
@@ -120,15 +135,14 @@ func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, serializer.ProviderRouterFeedItem{
 		ID:            row.ID,
 		Name:          row.Name,
-		Description:   row.Description,
-		RouterType:    row.RouterType,
-		BandwidthMbps: row.BandwidthMbps,
-		CostRub:       row.CostRub,
+		Description:   deref(row.Description),
+		BandwidthMbps: deref(row.BandwidthMbps),
+		CostRub:       deref(row.CostRub),
 		ImageURL:      h.repo.MediaURL(row.ImageKey, repository.DefaultImageKey),
 		VideoURL:      h.repo.MediaURL(row.VideoKey, repository.DefaultVideoKey),
-		LikesCount:    row.LikesCount,
-		IsLiked:       boolToInt(row.IsLiked),
-		CreatorName:   row.CreatorName,
+		LikesCount:    int64(len(row.Likes)),
+		IsLiked:       boolToInt(likedBy(row, userID)),
+		CreatorName:   row.CreatedBy.DisplayName,
 		PublishedAt:   row.PublishedAt,
 	})
 }
@@ -260,13 +274,6 @@ func validatePublish(request serializer.ProviderRouterPublishRequest) (repositor
 		return fields, errors.New("cost_rub обязателен и должен быть больше 0")
 	}
 	fields.BandwidthMbps, fields.CostRub = *request.BandwidthMbps, *request.CostRub
-	fields.RouterType = "residential"
-	if request.RouterType != nil {
-		fields.RouterType = strings.TrimSpace(*request.RouterType)
-		if !ds.ProviderRouterTypes[fields.RouterType] {
-			return fields, errors.New("router_type: central, intermediate или residential")
-		}
-	}
 	return fields, nil
 }
 
@@ -289,7 +296,6 @@ func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	deleted.Status = ds.ProviderRouterStatusDeleted
 	writeJSON(w, http.StatusOK, h.toDraft(deleted))
 }
 
