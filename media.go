@@ -11,7 +11,7 @@ import (
 // иконками и стилями. Они показываются, если ключ в БД пустой или файл по ссылке
 // в MinIO недоступен (например, по «Далее» в таблицу записываются неверные ключи).
 const (
-	defaultImageURL = "/static/media/router-default.svg"
+	defaultImageURL = "/static/media/router-default.jpg"
 	defaultVideoURL = "/static/media/router-default.mp4"
 )
 
