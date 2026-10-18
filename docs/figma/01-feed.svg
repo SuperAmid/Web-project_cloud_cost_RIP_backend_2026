@@ -1,18 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <!-- Лента: видео на всю карточку, слева текст, справа параметры и иконки -->
   <rect width="390" height="844" fill="#F5F5F5"/>
-  <rect x="14" y="18" width="362" height="742" rx="8" fill="#FFFFFF" stroke="#B9B9B9"/>
-  <rect x="15" y="19" width="360" height="470" rx="7" fill="#4E4E4E"/>
-  <path d="M15 340h360v149H15z" fill="#111" opacity=".7"/>
-  <text x="38" y="376" font-family="Arial" font-size="12" font-weight="bold" fill="#FFFFFF">CENTRAL · #101</text>
-  <text x="38" y="416" font-family="Arial" font-size="28" font-weight="bold" fill="#FFFFFF">Core Backbone One</text>
-  <text x="38" y="444" font-family="Arial" font-size="14" fill="#FFFFFF">Маршрутизатор магистрального узла</text>
-  <text x="38" y="464" font-family="Arial" font-size="14" fill="#FFFFFF">провайдера. Ещё</text>
-  <rect x="38" y="500" width="132" height="58" rx="5" fill="#FFF" stroke="#B9B9B9"/>
-  <text x="48" y="521" font-family="Arial" font-size="10" fill="#27272A">Пропускная способность</text><text x="48" y="544" font-family="Arial" font-size="16" font-weight="bold" fill="#27272A">100000 Мбит/с</text>
-  <rect x="180" y="500" width="104" height="58" rx="5" fill="#FFF" stroke="#B9B9B9"/>
-  <text x="190" y="521" font-family="Arial" font-size="10" fill="#27272A">Стоимость</text><text x="190" y="544" font-family="Arial" font-size="16" font-weight="bold" fill="#27272A">980000 ₽</text>
-  <text x="298" y="538" font-family="Arial" font-size="16" font-weight="bold" fill="#FFFFFF">♥ 4</text>
-  <rect x="330" y="508" width="34" height="34" rx="5" fill="#D92D20"/><text x="340" y="533" font-family="Arial" font-size="23" font-weight="bold" fill="#FFF">→</text>
-  <rect y="772" width="390" height="72" fill="#5B2C83"/>
-  <text x="49" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Лента</text><text x="158" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Добавление</text><text x="289" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Плитка</text>
+  <rect x="14" y="18" width="362" height="742" rx="8" fill="#4E4E4E" stroke="#B9B9B9"/>
+  <path d="M15 430h360v329H15z" fill="#111" opacity=".75"/>
+  <text x="34" y="606" font-family="Arial" font-size="12" font-weight="bold" fill="#FFFFFF">МАРШРУТИЗАТОР · #101</text>
+  <text x="34" y="642" font-family="Arial" font-size="26" font-weight="bold" fill="#FFFFFF">Core Backbone</text>
+  <text x="34" y="672" font-family="Arial" font-size="26" font-weight="bold" fill="#FFFFFF">One</text>
+  <text x="34" y="700" font-family="Arial" font-size="14" fill="#FFFFFF">Центральный маршрутизатор</text>
+  <text x="34" y="718" font-family="Arial" font-size="14" fill="#FFFFFF">ядра провайдера для магистр…</text>
+  <text x="34" y="742" font-family="Arial" font-size="14" font-weight="bold" fill="#FFFFFF">▸ Ещё</text>
+  <g font-family="Arial" fill="#FFFFFF">
+    <rect x="252" y="520" width="106" height="58" rx="5" fill="#000" fill-opacity=".45" stroke="#FFFFFF" stroke-opacity=".7"/>
+    <text x="260" y="538" font-size="9">Пропускная способность</text>
+    <text x="260" y="562" font-size="13" font-weight="bold">100000 Мбит/с</text>
+    <rect x="252" y="586" width="106" height="58" rx="5" fill="#000" fill-opacity=".45" stroke="#FFFFFF" stroke-opacity=".7"/>
+    <text x="260" y="604" font-size="9">Стоимость</text>
+    <text x="260" y="628" font-size="13" font-weight="bold">980000 ₽</text>
+    <text x="293" y="676" font-size="22" font-weight="bold">♥</text>
+    <text x="297" y="694" font-size="13" font-weight="bold">4</text>
+  </g>
+  <rect x="284" y="706" width="42" height="42" rx="5" fill="#FF4F12"/>
+  <text x="293" y="736" font-family="Arial" font-size="24" font-weight="bold" fill="#FFF">→</text>
+  <rect y="772" width="390" height="72" fill="#7700FF"/>
+  <text x="49" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Лента</text><text x="158" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Добавление</text><text x="268" y="814" font-family="Arial" font-size="13" font-weight="bold" fill="#FFF">Маршрутизаторы</text>
 </svg>

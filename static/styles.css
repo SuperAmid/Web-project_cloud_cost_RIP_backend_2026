@@ -1,17 +1,21 @@
 /* ============================================================
-   Визуальный референс: карточки товаров Ubiquiti.
-   Принципы: компактная техническая компоновка и чёткая иерархия медиаэлементов.
-   Палитра:
-     - красные кнопки: #D92D20
-     - белые карточки: #FFFFFF
-     - фиолетовая навигация: #5B2C83
+   Источник дизайна: сайт провайдера «Ростелеком» — https://rt.ru
+   (раздел «Домашний интернет»). Что скопировано:
+     - три фирменных цвета с точными кодами:
+         фиолетовый  #7700FF — нижняя навигация, подписи-«eyebrow», hover карточек;
+         красно-оранжевый #FF4F12 — все кнопки и иконка «Следующий»;
+         тёмно-синий #101828 — основной текст;
+     - кнопки прямоугольные с небольшим скруглением (5 px);
+     - карточки белые с тонкой серой обводкой и тенью при наведении;
+     - hover: кнопки темнеют, пункты навигации подсвечиваются, у карточки
+       меняется цвет обводки на фиолетовый.
    ============================================================ */
 
 :root {
-  --red: #D92D20;
-  --red-dark: #B42318;
-  --purple: #5B2C83;
-  --ink: #27272A;
+  --red: #FF4F12;       /* Ростелеком: красно-оранжевый — кнопки */
+  --red-dark: #D93D05;  /* hover кнопок */
+  --purple: #7700FF;    /* Ростелеком: фиолетовый — навигация */
+  --ink: #101828;       /* Ростелеком: тёмно-синий — текст */
   --muted: #666;
   --line: #B9B9B9;
   --canvas: #F5F5F5;
@@ -91,7 +95,7 @@ body {
 }
 
 .bottom-nav a:hover {
-  background: #7D43AA;
+  background: #5C00C7;
 }
 
 /* ---------- Feed card ---------- */
@@ -106,7 +110,7 @@ body {
   background: #222;
 }
 
-.router-video {
+.provider_router_video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -121,6 +125,10 @@ body {
 .feed-content {
   position: absolute;
   inset: auto 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 116px;
+  gap: 12px;
+  align-items: end;
   padding: 18px;
   color: #fff;
 }
@@ -145,12 +153,12 @@ body {
 
 /* ---------- Feed side metrics ---------- */
 
+/* Правая колонка ленты: параметры и иконки друг под другом */
 .feed-side {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
-  gap: 7px;
-  align-items: end;
-  margin-top: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
 }
 
 .metric {
@@ -167,17 +175,26 @@ body {
 }
 
 .metric strong {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 .like-icon {
-  padding: 9px 4px;
+  display: grid;
+  place-items: center;
+  padding: 6px 4px;
+  font-size: 1.4rem;
+  line-height: 1;
   font-weight: 800;
-  white-space: nowrap;
+}
+
+.like-icon b {
+  font-size: 0.85rem;
 }
 
 .next-icon {
   display: grid;
+  align-self: center;
   width: 42px;
   height: 42px;
   place-items: center;
@@ -196,21 +213,21 @@ body {
 
 /* ---------- Forms ---------- */
 
-.router-form,
+.provider_router_form,
 .filter-form {
   display: grid;
   gap: 12px;
   margin-top: 20px;
 }
 
-.router-form label,
+.provider_router_form label,
 .filter-form label {
   display: grid;
   gap: 5px;
   font-weight: 700;
 }
 
-.router-form input,
+.provider_router_form input,
 .filter-form input {
   width: 100%;
   padding: 10px;
@@ -220,11 +237,40 @@ body {
   font: inherit;
 }
 
-.router-form input[type=file] {
+.form-group {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--white);
+}
+
+.form-group legend {
+  padding: 0 6px;
+  color: var(--purple);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.media-preview {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #222;
+}
+
+.provider_router_form input[type=file] {
   padding: 7px;
 }
 
-.router-form small {
+.provider_router_form small {
   font-weight: 400;
   color: var(--muted);
 }
@@ -254,14 +300,14 @@ body {
 
 /* ---------- Router grid ---------- */
 
-.router-grid {
+.provider_router_grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 18px;
 }
 
-.router-tile {
+.provider_router_tile {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -270,12 +316,12 @@ body {
   text-decoration: none;
 }
 
-.router-tile:hover {
+.provider_router_tile:hover {
   border-color: var(--purple);
   box-shadow: 0 3px 10px #0002;
 }
 
-.router-tile img {
+.provider_router_tile img {
   display: block;
   width: 100%;
   height: 110px;
@@ -283,22 +329,22 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
-.router-tile div {
+.provider_router_tile div {
   padding: 10px;
 }
 
-.router-tile h2 {
+.provider_router_tile h2 {
   margin: 5px 0;
   font-size: 1rem;
   line-height: 1.15;
 }
 
-.router-tile p {
+.provider_router_tile p {
   margin: 3px 0;
   font-size: 0.79rem;
 }
 
-.router-tile span {
+.provider_router_tile span {
   font-size: 0.78rem;
   color: var(--red);
   font-weight: 700;
@@ -308,4 +354,12 @@ body {
 
 .empty-state {
   color: var(--muted);
+}
+/* Подпись фильтра в одну строку: «Мин. пропускная способность: 10000 Мбит/с» */
+.filter-form label {
+  display: block;
+}
+
+.filter-form label output {
+  color: var(--red-dark);
 }

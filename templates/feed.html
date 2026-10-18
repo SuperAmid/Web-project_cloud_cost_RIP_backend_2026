@@ -14,8 +14,8 @@
     <!-- ---------- Карточка ленты ---------- -->
     <section class="feed-card">
 
-      <!-- Медиа: постер-изображение и видео -->
-      <video class="router-video"
+      <!-- Медиа: постер-изображение и видео из MinIO -->
+      <video class="provider_router_video"
              autoplay
              muted
              loop
@@ -27,26 +27,26 @@
       <!-- Затемняющий градиент поверх медиа -->
       <div class="feed-shade"></div>
 
-      <!-- Контент поверх медиа -->
+      <!-- Контент поверх медиа: слева текст, справа параметры и иконки -->
       <div class="feed-content">
 
-        <!-- Тип маршрутизатора и ID -->
-        <p class="eyebrow">{{.ProviderRouter.RouterType}} · #{{.ProviderRouter.ID}}</p>
+        <!-- Левая колонка: название и описание -->
+        <div class="feed-text">
+          <p class="eyebrow">Маршрутизатор · #{{.ProviderRouter.ID}}</p>
+          <h1>{{.ProviderRouter.Name}}</h1>
 
-        <!-- Название -->
-        <h1>{{.ProviderRouter.Name}}</h1>
+          <!-- Краткое описание: не больше двух строк -->
+          <p class="short-description">{{.ProviderRouter.ShortDescription}}</p>
 
-        <!-- Краткое описание -->
-        <p class="short-description">{{.ProviderRouter.ShortDescription}}</p>
+          <!-- Полное описание раскрывается без JavaScript -->
+          <details class="more-description">
+            <summary>Ещё</summary>
+            <p>{{.ProviderRouter.Description}}</p>
+          </details>
+        </div>
 
-        <!-- Раскрывающееся полное описание -->
-        <details class="more-description">
-          <summary>Ещё</summary>
-          <p>{{.ProviderRouter.Description}}</p>
-        </details>
-
-        <!-- Боковые метрики и действия -->
-        <aside class="feed-side">
+        <!-- Правая колонка: два параметра по теме, лайк, «Следующий» -->
+        <aside class="feed-side" aria-label="Параметры маршрутизатора">
 
           <!-- Пропускная способность -->
           <div class="metric">
@@ -61,7 +61,7 @@
           </div>
 
           <!-- Лайки -->
-          <span class="like-icon" aria-label="Лайки">♥ {{.ProviderRouter.Likes}}</span>
+          <span class="like-icon" aria-label="Лайки">♥<b>{{.ProviderRouter.Likes}}</b></span>
 
           <!-- Переход к следующему маршрутизатору -->
           <a class="next-icon"

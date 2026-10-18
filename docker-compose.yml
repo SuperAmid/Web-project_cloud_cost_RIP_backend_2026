@@ -1,33 +1,50 @@
-name: provider-router
+name: provider_routers
 
+# Образы MinIO: официальные quay.io/minio/* стали приватными, а minio/minio удалён
+# из Docker Hub, поэтому используются архивные образы Bitnami (bitnamilegacy).
+# Версия закреплена тегом и digest, чтобы стек не ломался от обновлений latest.
 services:
   minio:
-    image: quay.io/minio/minio:latest
-    command: server /data --console-address ":9001"
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r5@sha256:6dabb4a2088c9a79908de3bc05f4586c23ad2182c8908e7e3acbf61c1467fb20
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_API_PORT_NUMBER: "9000"
+      MINIO_CONSOLE_PORT_NUMBER: "9001"
+      MINIO_BROWSER: "on"
+      MINIO_SKIP_CLIENT: "yes"
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio-data:/data
+      - minio-data:/bitnami/minio/data
+    healthcheck:
+      # В образе нет curl, поэтому живость проверяется запросом через /dev/tcp.
+      test:
+        - CMD
+        - bash
+        - -c
+        - exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /minio/health/live HTTP/1.0\r\n\r\n' >&3 && grep -q '200 OK' <&3
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   minio-init:
-    image: quay.io/minio/mc:latest
+    image: bitnamilegacy/minio-client:2025.7.21-debian-12-r3@sha256:73bd39f7899a0cef12b8dd5df13aa93a3ed1aaa44236542442e9ac76819ac158
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     volumes:
       - ./assets:/assets:ro
-    entrypoint: >
-      /bin/sh -c "
-      until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 2; done;
-      mc mb --ignore-existing local/provider-media;
-      mc anonymous set download local/provider-media;
-      mc cp --recursive /assets/provider-media/ local/provider-media/;
-      mc anonymous set download local/provider-media;
-      exit 0
-      "
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        export HOME=/tmp
+        mc alias set local http://minio:9000 minioadmin minioadmin
+        mc mb --ignore-existing local/provider-media
+        mc cp --recursive /assets/provider-media/ local/provider-media/
+        mc anonymous set download local/provider-media
 
 volumes:
   minio-data:

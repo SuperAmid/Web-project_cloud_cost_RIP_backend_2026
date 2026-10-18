@@ -15,40 +15,52 @@
     <header class="page-header">
       <p class="eyebrow">Черновик · ЛР1</p>
       <h1>Добавление</h1>
-      <p>Выбор фото и видео доступен только в форме. В ЛР1 файлы и данные не отправляются на сервер.</p>
+      <p>Поля можно заполнить, но в ЛР1 данные и файлы на сервер не отправляются.</p>
     </header>
 
     <!-- ---------- Форма добавления ---------- -->
-    <form class="router-form">
+    <form class="provider_router_form">
 
-      <!-- Загрузка фото -->
-      <label>Фото
-        <input type="file" accept="image/*">
-        <small>По умолчанию: изображение из MinIO по ключу <code>{{.ProviderRouter.ImageKey}}</code>.</small>
-      </label>
+      <!-- Группа 1: медиа сверху, друг под другом -->
+      <fieldset class="form-group">
+        <legend>Фото и видео</legend>
 
-      <!-- Загрузка видео -->
-      <label>Видео
-        <input type="file" accept="video/*">
-        <small>По умолчанию: короткое видео из MinIO по ключу <code>{{.ProviderRouter.VideoKey}}</code>.</small>
-      </label>
+        <!-- Фото: превью по умолчанию из MinIO и выбор файла из проводника -->
+        <label>Фото
+          <img class="media-preview" src="{{.ProviderRouter.ImageURL}}" alt="Фото по умолчанию">
+          <input type="file" accept="image/*">
+          <small>По умолчанию показано изображение черновика: <code>{{.ProviderRouter.ImageKey}}</code></small>
+        </label>
 
-      <!-- Название маршрутизатора -->
-      <label>Название маршрутизатора
-        <input value="{{.ProviderRouter.Name}}">
-      </label>
+        <!-- Видео: превью по умолчанию из MinIO и выбор файла из проводника -->
+        <label>Видео
+          <video class="media-preview" src="{{.ProviderRouter.VideoURL}}" poster="{{.ProviderRouter.ImageURL}}" muted loop autoplay playsinline controls></video>
+          <input type="file" accept="video/*">
+          <small>По умолчанию показано видео черновика: <code>{{.ProviderRouter.VideoKey}}</code></small>
+        </label>
+      </fieldset>
 
-      <!-- Пропускная способность -->
-      <label>Пропускная способность, Мбит/с
-        <input type="number" value="{{.ProviderRouter.BandwidthMbps}}">
-      </label>
+      <!-- Группа 2: текст и два поля по теме -->
+      <fieldset class="form-group">
+        <legend>Информация</legend>
 
-      <!-- Стоимость -->
-      <label>Стоимость, ₽
-        <input type="number" value="{{.ProviderRouter.CostRub}}">
-      </label>
+        <!-- Название маршрутизатора -->
+        <label>Название маршрутизатора
+          <input value="{{.ProviderRouter.Name}}">
+        </label>
 
-      <!-- Кнопка перехода далее -->
+        <!-- Пропускная способность -->
+        <label>Пропускная способность, Мбит/с
+          <input type="number" value="{{.ProviderRouter.BandwidthMbps}}">
+        </label>
+
+        <!-- Стоимость -->
+        <label>Стоимость, ₽
+          <input type="number" value="{{.ProviderRouter.CostRub}}">
+        </label>
+      </fieldset>
+
+      <!-- Кнопка перехода далее: в ЛР1 ничего не отправляет -->
       <button class="action-button" type="button">Далее</button>
 
       <!-- Подсказка о поведении кнопки -->

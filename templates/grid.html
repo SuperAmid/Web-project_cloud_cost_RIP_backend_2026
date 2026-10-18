@@ -42,19 +42,16 @@
     </form>
 
     <!-- ---------- Сетка карточек маршрутизаторов ---------- -->
-    <section class="router-grid">
+    <section class="provider_router_grid">
 
       {{range .ProviderRouters}}
         <!-- Карточка одного маршрутизатора -->
-        <a class="router-tile" href="/provider_routers/feed?id={{.ID}}">
+        <a class="provider_router_tile" href="/provider_routers/feed?id={{.ID}}">
 
           <!-- Изображение маршрутизатора -->
           <img src="{{.ImageURL}}" alt="{{.Name}}">
 
           <div>
-            <!-- Тип маршрутизатора -->
-            <p class="tile-type">{{.RouterType}}</p>
-
             <!-- Название -->
             <h2>{{.Name}}</h2>
 
