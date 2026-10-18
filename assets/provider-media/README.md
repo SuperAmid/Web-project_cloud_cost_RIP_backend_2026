@@ -2,7 +2,7 @@
 
 `docker compose up -d` creates the public `provider-media` bucket and uploads every file from this directory.
 
-The SVG previews and short looping MP4 clips are included. The video keys are:
+The SVG/JPG previews and short looping MP4 clips are included. `provider_routers/draft.jpg` and `videos/draft-loop.mp4` are the default photo and video for new cards and drafts. The video keys are:
 
 - `core-loop.mp4`
 - `ring-loop.mp4`
