@@ -19,12 +19,14 @@ services:
     volumes:
       - minio-data:/bitnami/minio/data
     healthcheck:
-      # В образе нет curl, поэтому живость проверяется запросом через /dev/tcp.
+      # В образе нет curl, поэтому живость проверяется HTTP-запросом через /dev/tcp.
+      # Нужен HTTP/1.1 с заголовком Host: на HTTP/1.0 без Host MinIO отвечает 400.
       test:
         - CMD
         - bash
         - -c
-        - exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /minio/health/live HTTP/1.0\r\n\r\n' >&3 && grep -q '200 OK' <&3
+        - |-
+          exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /minio/health/live HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && grep -q '200 OK' <&3
       interval: 5s
       timeout: 3s
       retries: 20
