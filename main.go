@@ -52,9 +52,12 @@ func main() {
 		log.Fatal(err)
 	}
 	app := &providerRoutersApp{
-		db:        db,
-		templates: template.Must(template.ParseGlob("templates/*.html")),
-		media:     newMediaResolver(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media")),
+		db: db,
+		templates: template.Must(template.New("").Funcs(template.FuncMap{
+			// clock — время для строки состояния телефона (рендерится на сервере, без JavaScript)
+			"clock": func() string { return time.Now().Format("15:04") },
+		}).ParseGlob("templates/*.html")),
+		media: newMediaResolver(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media")),
 	}
 	if err := applyMigrations(db, "migrations"); err != nil {
 		log.Fatal(err)
@@ -147,7 +150,7 @@ func (a *providerRoutersApp) feedHandler(w http.ResponseWriter, r *http.Request)
 		}
 	}
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		http.NotFound(w, r)
+		a.notFound(w)
 		return
 	}
 	if err != nil {
@@ -334,6 +337,16 @@ func (v providerRouterView) ShortDescription() string {
 		return v.Description
 	}
 	return string(letters[:92]) + "…"
+}
+
+// notFound — страница 404 в том же оформлении (рамка телефона и меню),
+// например для удалённой или несуществующей карточки ленты.
+func (a *providerRoutersApp) notFound(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	if err := a.templates.ExecuteTemplate(w, "notfound.html", map[string]any{"Title": "Маршрутизатор не найден"}); err != nil {
+		log.Printf("template notfound.html: %v", err)
+	}
 }
 
 func (a *providerRoutersApp) render(w http.ResponseWriter, name string, data any) {

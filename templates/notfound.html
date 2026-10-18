@@ -1,0 +1,31 @@
+{{ define "notfound.html" }}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ .Title }}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="page-notfound">
+  <!-- Экран телефона: на компьютере показывается рамкой, на телефоне — во весь экран -->
+  <div class="phone">
+  {{ template "statusbar" . }}
+  <main class="phone-shell">
+
+    <!-- ---------- 404: удалённая или несуществующая карточка ---------- -->
+    <header class="page-header">
+      <p class="eyebrow">Ошибка 404</p>
+      <h1>Маршрутизатор не найден</h1>
+      <p>Карточка удалена или ещё не опубликована, поэтому её нельзя открыть.</p>
+    </header>
+
+    <a class="action-button notfound-link" href="/provider_routers/feed">Открыть ленту</a>
+
+  </main>
+
+  {{ template "nav" . }}
+  </div>
+</body>
+</html>
+{{ end }}

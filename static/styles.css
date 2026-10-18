@@ -32,18 +32,48 @@
 
 body {
   margin: 0;
-  padding-bottom: 72px;
   background: var(--canvas);
   color: var(--ink);
   font: 16px/1.4 Arial, sans-serif;
 }
 
-/* ---------- Layout shell ---------- */
+/* ---------- Layout: экран телефона ---------- */
+
+/* На телефоне .phone занимает весь экран; на компьютере (шире 520 px)
+   показывается как телефон: рамка 390×844 по центру, прокрутка внутри,
+   нижняя навигация прижата к низу экрана телефона. */
+.phone {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--canvas);
+}
 
 .phone-shell {
-  width: min(100%, 430px);
-  margin: auto;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 16px;
+}
+
+@media (min-width: 520px) {
+  body {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: #E4E4EA;
+  }
+
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100vh - 40px));
+    border: 10px solid var(--ink);
+    border-radius: 34px;
+    box-shadow: 0 18px 40px #10182840;
+    overflow: hidden;
+  }
 }
 
 /* ---------- Typography / headers ---------- */
@@ -73,27 +103,47 @@ body {
 /* ---------- Bottom navigation ---------- */
 
 .bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
+  flex: none;
   display: flex;
-  justify-content: center;
   gap: 4px;
-  padding: 10px max(12px, calc((100% - 430px) / 2 + 12px));
+  padding: 6px 8px 8px;
   background: var(--purple);
 }
 
 .bottom-nav a {
   flex: 1;
-  padding: 10px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 2px;
   color: #fff;
   text-align: center;
   text-decoration: none;
   font-weight: 700;
-  font-size: 0.8rem;
-  border-radius: 4px;
+  font-size: 0.72rem;
+  border-radius: 5px;
+}
+
+.bottom-nav svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bottom-nav svg .fill {
+  fill: currentColor;
+}
+
+/* Активная вкладка — по классу страницы на <body> */
+.page-feed .nav-feed,
+.page-draft .nav-draft,
+.page-grid .nav-grid {
+  background: #FFFFFF2E;
 }
 
 .bottom-nav a:hover {
@@ -102,13 +152,16 @@ body {
 
 /* ---------- Feed card ---------- */
 
+/* Лента как Vibes: видео на весь экран телефона */
+.page-feed .phone-shell {
+  padding: 0;
+  overflow: hidden;
+}
+
 .feed-card {
-  height: calc(100vh - 92px);
-  min-height: 540px;
+  height: 100%;
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 8px;
   background: #222;
 }
 
@@ -310,6 +363,7 @@ body {
 }
 
 .provider_router_tile {
+  position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -346,10 +400,28 @@ body {
   font-size: 0.79rem;
 }
 
-.provider_router_tile span {
-  font-size: 0.78rem;
-  color: var(--red);
+/* Поля по теме — «чипы» под названием */
+.tile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #F1E6FF;
+  color: var(--purple);
+  font-size: 0.72rem;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.provider_router_tile .tile-likes {
+  margin-top: 6px;
+  color: var(--red);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 /* ---------- Empty state ---------- */
@@ -360,17 +432,36 @@ body {
 
 /* ---------- ЛР2: удаление, ошибки формы, описание ---------- */
 
+/* «Удалить» — красная кнопка-иконка в правом верхнем углу карточки */
+.tile-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+}
+
 .delete-button {
-  width: calc(100% - 16px);
-  margin: 0 8px 10px;
-  padding: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border: 0;
   border-radius: 5px;
   background: var(--red);
   color: #fff;
-  font: inherit;
-  font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 2px 6px #0004;
+}
+
+.delete-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .delete-button:hover {
@@ -432,4 +523,103 @@ input[type=file]::file-selector-button {
 
 input[type=file]::file-selector-button:hover {
   background: var(--red-dark);
+}
+
+/* ---------- Строка состояния телефона (только в рамке на компьютере) ---------- */
+
+.status-bar {
+  display: none;
+}
+
+@media (min-width: 520px) {
+  .status-bar {
+    position: relative;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 34px;
+    padding: 0 22px 0 26px;
+    background: var(--canvas);
+    color: var(--ink);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  /* Камера — «капля» по центру экрана */
+  .sb-camera {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    margin-left: -7px;
+    border-radius: 50%;
+    background: #0B0F19;
+    box-shadow: inset 0 0 0 3px #1E2638;
+  }
+
+  .sb-icons {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .sb-icons svg {
+    height: 11px;
+    fill: currentColor;
+  }
+
+  .sb-battery {
+    position: relative;
+    width: 24px;
+    height: 12px;
+    padding: 1.5px;
+    border: 1.5px solid currentColor;
+    border-radius: 3px;
+  }
+
+  .sb-battery::after {
+    content: "";
+    position: absolute;
+    right: -4px;
+    top: 3px;
+    width: 2px;
+    height: 4px;
+    border-radius: 0 1px 1px 0;
+    background: currentColor;
+  }
+
+  .sb-level {
+    display: block;
+    width: 87%;
+    height: 100%;
+    border-radius: 1px;
+    background: currentColor;
+  }
+
+  .sb-percent {
+    font-size: 0.74rem;
+  }
+
+  /* На ленте строка состояния поверх тёмного видео */
+  .page-feed .status-bar {
+    background: #0B0F19;
+    color: #fff;
+  }
+}
+
+@media (min-width: 520px) {
+  .page-feed .sb-camera {
+    background: #000;
+    box-shadow: inset 0 0 0 3px #2A3550, 0 0 0 1.5px #FFFFFF33;
+  }
+}
+
+/* ---------- Страница 404 ---------- */
+
+.notfound-link {
+  display: inline-block;
+  margin-top: 20px;
+  text-decoration: none;
 }

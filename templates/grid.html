@@ -7,7 +7,10 @@
   <title>{{ .Title }}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body class="page-grid">
+  <!-- Экран телефона: на компьютере показывается рамкой, на телефоне — во весь экран -->
+  <div class="phone">
+  {{ template "statusbar" . }}
   <main class="phone-shell">
 
     <!-- ---------- Шапка страницы ---------- -->
@@ -37,15 +40,17 @@
             <img src="{{ .ImageURL }}" alt="{{ .Name }}">
             <div>
               <h2>{{ .Name }}</h2>
-              <p>{{ .BandwidthLabel }}</p>
-              <p>{{ .CostLabel }}</p>
-              <span>♥ {{ .Likes }}</span>
+              <p class="tile-chips">
+                <span class="chip">{{ .BandwidthLabel }}</span>
+                <span class="chip">{{ .CostLabel }}</span>
+              </p>
+              <p class="tile-likes">♥ {{ .Likes }}</p>
             </div>
           </a>
 
-          <!-- Удаление: POST, на сервере SQL UPDATE status = deleted -->
-          <form method="post" action="/provider_routers/{{ .ID }}/delete">
-            <button class="delete-button" type="submit">Удалить</button>
+          <!-- «Удалить»: POST, на сервере SQL UPDATE status = deleted через курсор -->
+          <form class="tile-delete" method="post" action="/provider_routers/{{ .ID }}/delete">
+            <button class="delete-button" type="submit" title="Удалить" aria-label="Удалить"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
           </form>
         </article>
       {{ else }}
@@ -55,6 +60,7 @@
   </main>
 
   {{ template "nav" . }}
+  </div>
 </body>
 </html>
 {{ end }}

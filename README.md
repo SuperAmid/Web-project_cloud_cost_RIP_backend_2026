@@ -27,7 +27,8 @@
 | `templates/feed.html` | страница «Лента» |
 | `templates/draft.html` | страница «Добавление» (шаги «Далее» и «Опубликовать») |
 | `templates/grid.html` | страница «Маршрутизаторы» (плитка, фильтр, «Удалить») |
-| `templates/partials.html` | нижняя навигация |
+| `templates/partials.html` | нижняя навигация и строка состояния телефона (время, камера, заряд) |
+| `templates/notfound.html` | страница 404 (удалённая карточка) |
 | `static/styles.css` | все стили |
 | `static/media/` | фото и видео по умолчанию на SSR-сервере |
 | `assets/provider-media/` | файлы, которые `minio-init` загружает в бакет MinIO |
