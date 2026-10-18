@@ -4,18 +4,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Добавление маршрутизатора</title>
+  <title>{{ .Title }}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
   <main class="phone-shell">
+
+    <!-- ---------- Шапка страницы ---------- -->
     <header class="page-header">
       <p class="eyebrow">Черновик · ЛР2</p>
       <h1>Добавление</h1>
-      <p>
-        Файлы выбираются из проводника, но в ЛР2 на сервер не передаются:
-        используются ключи медиа по умолчанию из MinIO.
-      </p>
     </header>
 
     {{ if .Error }}
@@ -23,82 +21,62 @@
     {{ end }}
 
     {{ if .ProviderRouter }}
-      <form class="router-form" method="post" action="/provider_routers/draft/publish">
-        <label>
-          Фото
-          <input type="file" accept="image/*">
-          <small>По умолчанию: <code>{{ .ProviderRouter.ImageKey }}</code></small>
-        </label>
+      <!-- ========== Шаг 2: черновик есть — «Опубликовать» ========== -->
+      <form class="provider_router_form" method="post" action="/provider_routers/draft/publish">
 
-        <label>
-          Видео
-          <input type="file" accept="video/*">
-          <small>По умолчанию: <code>{{ .ProviderRouter.VideoKey }}</code></small>
-        </label>
+        <!-- Фото и видео черновика (если файлов нет — по умолчанию с SSR-сервера) -->
+        <fieldset class="form-group">
+          <legend>Фото и видео</legend>
+          <img class="media-preview" src="{{ .ProviderRouter.ImageURL }}" alt="Фото маршрутизатора">
+          <video class="media-preview" src="{{ .ProviderRouter.VideoURL }}" poster="{{ .ProviderRouter.ImageURL }}" muted loop autoplay playsinline controls></video>
+        </fieldset>
 
-        <label>
-          Название маршрутизатора
-          <input value="{{ .ProviderRouter.Name }}" disabled>
-        </label>
+        <!-- Название уже задано на шаге «Далее», ниже — краткое описание и два поля по теме -->
+        <fieldset class="form-group">
+          <legend>Информация</legend>
+          <p class="draft-name">{{ .ProviderRouter.Name }}</p>
 
-        <label>
-          Пропускная способность, Мбит/с
-          <input
-            name="bandwidthMbps"
-            type="number"
-            min="0"
-            value="{{ .ProviderRouter.BandwidthMbps }}"
-            required
-          >
-        </label>
+          <label>Краткое описание
+            <textarea name="description" maxlength="500" required placeholder="Например, конечный маршрутизатор жилого комплекса">{{ .ProviderRouter.Description }}</textarea>
+          </label>
 
-        <label>
-          Стоимость, ₽
-          <input
-            name="costRub"
-            type="number"
-            min="0"
-            value="{{ .ProviderRouter.CostRub }}"
-            required
-          >
-        </label>
+          <label>Пропускная способность, Мбит/с
+            <input name="bandwidthMbps" type="number" min="1" required
+                   value="{{ if .ProviderRouter.BandwidthMbps }}{{ .ProviderRouter.BandwidthMbps }}{{ end }}">
+          </label>
+
+          <label>Стоимость, ₽
+            <input name="costRub" type="number" min="1" required
+                   value="{{ if .ProviderRouter.CostRub }}{{ .ProviderRouter.CostRub }}{{ end }}">
+          </label>
+        </fieldset>
 
         <button class="action-button" type="submit">Опубликовать</button>
       </form>
     {{ else }}
-      <form class="router-form" method="post" action="/provider_routers/draft/create">
-        <label>
-          Фото
-          <input type="file" accept="image/*">
-          <small>
-            По умолчанию будет использован ключ
-            <code>provider_routers/draft.svg</code> в MinIO.
-          </small>
-        </label>
+      <!-- ========== Шаг 1: черновика нет — три поля и «Далее» ========== -->
+      <form class="provider_router_form" method="post" action="/provider_routers/draft/create">
 
-        <label>
-          Видео
-          <input type="file" accept="video/*">
-          <small>
-            По умолчанию будет использован ключ
-            <code>videos/draft-loop.mp4</code> в MinIO.
-          </small>
-        </label>
+        <!-- Фото и видео: показаны файлы по умолчанию, выбор из проводника.
+             У полей нет name — по заданию ЛР2 файлы на сервер не передаются. -->
+        <fieldset class="form-group">
+          <legend>Фото и видео</legend>
+          <label>Фото
+            <img class="media-preview" src="{{ .DefaultImageURL }}" alt="Фото по умолчанию">
+            <input type="file" accept="image/*">
+          </label>
+          <label>Видео
+            <video class="media-preview" src="{{ .DefaultVideoURL }}" poster="{{ .DefaultImageURL }}" muted loop autoplay playsinline controls></video>
+            <input type="file" accept="video/*">
+          </label>
+        </fieldset>
 
-        <label>
-          Название маршрутизатора
-          <input name="name" required placeholder="Например, Residence Gateway">
-        </label>
-
-        <label>
-          Пропускная способность, Мбит/с
-          <input name="bandwidthMbps" type="number" min="0" required>
-        </label>
-
-        <label>
-          Стоимость, ₽
-          <input name="costRub" type="number" min="0" required>
-        </label>
+        <fieldset class="form-group">
+          <legend>Информация</legend>
+          <label>Название маршрутизатора
+            <input name="name" maxlength="120" required placeholder="Например, Ozerki Residence Gateway">
+          </label>
+        </fieldset>
 
         <button class="action-button" type="submit">Далее</button>
       </form>

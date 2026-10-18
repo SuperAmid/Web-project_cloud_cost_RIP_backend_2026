@@ -1,3 +1,4 @@
+// provider_routers — ЛР2: PostgreSQL + GORM + серверные шаблоны.
 package main
 
 import (
@@ -15,77 +16,34 @@ import (
 	"gorm.io/gorm"
 )
 
+// fixedCreatorEmail — в ЛР2 авторизации нет, создатель черновиков зафиксирован.
 const fixedCreatorEmail = "student@provider-routers.local"
 
+// Неверные ключи, которые по заданию пишутся в БД по кнопке «Далее»: таких файлов
+// в MinIO нет, поэтому на страницах показываются фото и видео по умолчанию с SSR-сервера.
 const (
-	statusDraft     = "draft"
-	statusPublished = "published"
-	statusDeleted   = "deleted"
-	defaultImageKey = "provider_routers/draft.svg"
-	defaultVideoKey = "videos/draft-loop.mp4"
+	notUploadedImageKey = "provider_routers/not-uploaded.jpg"
+	notUploadedVideoKey = "videos/not-uploaded.mp4"
 )
 
-// ProviderRouterUser owns drafts and can like provider routers.
-type ProviderRouterUser struct {
-	ID          uint   `gorm:"primaryKey"`
-	Email       string `gorm:"size:120;uniqueIndex;not null"`
-	DisplayName string `gorm:"size:80;not null"`
-	CreatedAt   time.Time
-}
-
-func (ProviderRouterUser) TableName() string { return "provider_router_users" }
-
-// ProviderRouter stores the two parameters required by the subject: bandwidth and cost.
-type ProviderRouter struct {
-	ID            uint   `gorm:"primaryKey"`
-	Name          string `gorm:"size:120;not null"`
-	Description   string `gorm:"size:500;not null"`
-	Status        string `gorm:"size:12;index;not null"`
-	ImageKey      string `gorm:"size:160;not null"`
-	VideoKey      string `gorm:"size:160;not null"`
-	RouterType    string `gorm:"size:24;not null"`
-	BandwidthMbps int    `gorm:"not null"`
-	CostRub       int    `gorm:"not null"`
-	CreatedAt     time.Time
-	PublishedAt   *time.Time
-	CreatedByID   uint                 `gorm:"not null;index"`
-	CreatedBy     ProviderRouterUser   `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-	Likes         []ProviderRouterLike `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-}
-
-func (ProviderRouter) TableName() string { return "provider_routers" }
-
-type ProviderRouterLike struct {
-	ProviderRouterID uint `gorm:"primaryKey"`
-	UserID           uint `gorm:"primaryKey"`
-	CreatedAt        time.Time
-	ProviderRouter   ProviderRouter     `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-	User             ProviderRouterUser `gorm:"constraint:OnUpdate:RESTRICT,OnDelete:RESTRICT;"`
-}
-
-func (ProviderRouterLike) TableName() string { return "provider_router_likes" }
-
-type ProviderRouterView struct {
-	ProviderRouter
-	ImageURL string
-	VideoURL string
-	Likes    int
-}
-
-type draftPage struct {
-	ProviderRouter *ProviderRouterView
-	Error          string
-}
-
-type gridPage struct {
-	ProviderRouters []ProviderRouterView
-	MinBandwidth    string
+// providerRouterView — данные одной карточки для шаблонов.
+type providerRouterView struct {
+	ID            uint
+	Name          string
+	Description   string
+	ImageKey      string
+	VideoKey      string
+	ImageURL      string
+	VideoURL      string
+	BandwidthMbps int
+	CostRub       int
+	Likes         int
 }
 
 type providerRoutersApp struct {
 	db        *gorm.DB
 	templates *template.Template
-	mediaURL  string
+	media     *mediaResolver
 }
 
 func main() {
@@ -96,9 +54,12 @@ func main() {
 	app := &providerRoutersApp{
 		db:        db,
 		templates: template.Must(template.ParseGlob("templates/*.html")),
-		mediaURL:  strings.TrimRight(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media"), "/"),
+		media:     newMediaResolver(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media")),
 	}
-	if err := app.migrateAndSeed(); err != nil {
+	if err := applyMigrations(db, "migrations"); err != nil {
+		log.Fatal(err)
+	}
+	if err := app.seed(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -107,24 +68,20 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/provider_routers/feed", http.StatusFound)
 	})
-	mux.HandleFunc("/provider_routers/feed", app.feedHandler)
-	mux.HandleFunc("/provider_routers/draft", app.draftHandler)
-	mux.HandleFunc("/provider_routers/draft/create", app.createDraftHandler)
-	mux.HandleFunc("/provider_routers/draft/publish", app.publishDraftHandler)
-	mux.HandleFunc("/provider_routers/", app.providerRouterActionHandler)
-	mux.HandleFunc("/provider_routers", app.gridHandler)
+	// Шесть HTTP-методов ЛР2: три GET и три POST.
+	mux.HandleFunc("GET /provider_routers/feed", app.feedHandler)                         // ORM, одна строка
+	mux.HandleFunc("GET /provider_routers/draft", app.draftHandler)                       // ORM
+	mux.HandleFunc("GET /provider_routers", app.gridHandler)                              // ORM, фильтр
+	mux.HandleFunc("POST /provider_routers/draft/create", app.createDraftHandler)         // ORM Create
+	mux.HandleFunc("POST /provider_routers/draft/publish", app.publishDraftHandler)       // ORM Updates
+	mux.HandleFunc("POST /provider_routers/{id}/delete", app.deleteProviderRouterHandler) // SQL UPDATE через курсор
 	addr := envOr("APP_ADDR", ":8080")
-	log.Printf("provider_routers lab2 listens on http://localhost%s", addr)
+	log.Printf("provider_routers ЛР2 слушает http://localhost%s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
-func (a *providerRoutersApp) migrateAndSeed() error {
-	if err := a.db.AutoMigrate(&ProviderRouterUser{}, &ProviderRouter{}, &ProviderRouterLike{}); err != nil {
-		return err
-	}
-	if err := a.db.Exec("CREATE UNIQUE INDEX IF NOT EXISTS one_draft_provider_router_per_creator ON provider_routers (created_by_id) WHERE status = 'draft'").Error; err != nil {
-		return err
-	}
+// seed наполняет пустую БД начальными данными (те же, что в db/seed.sql).
+func (a *providerRoutersApp) seed() error {
 	var count int64
 	if err := a.db.Model(&ProviderRouter{}).Count(&count).Error; err != nil || count > 0 {
 		return err
@@ -136,17 +93,25 @@ func (a *providerRoutersApp) migrateAndSeed() error {
 		return err
 	}
 	now := time.Now()
+	text := func(s string) *string { return &s }
+	num := func(n int) *int { return &n }
 	items := []ProviderRouter{
-		{Name: "Core Backbone One", Description: "Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети.", Status: statusPublished, ImageKey: "provider_routers/core.svg", VideoKey: "videos/core-loop.mp4", RouterType: "central", BandwidthMbps: 100000, CostRub: 980000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "North Ring Hub", Description: "Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль.", Status: statusPublished, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 10000, CostRub: 310000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Harbor Residence Gateway", Description: "Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами.", Status: statusPublished, ImageKey: "provider_routers/residential.svg", VideoKey: "videos/residential-loop.mp4", RouterType: "residential", BandwidthMbps: 1000, CostRub: 72000, CreatedByID: operator.ID, PublishedAt: &now},
-		{Name: "Riverside Residence Gateway", Description: "Черновик карточки маршрутизатора для следующего жилого дома.", Status: statusDraft, ImageKey: defaultImageKey, VideoKey: defaultVideoKey, RouterType: "residential", BandwidthMbps: 1000, CostRub: 65000, CreatedByID: student.ID},
-		{Name: "Legacy South Edge", Description: "Выведенный из эксплуатации пограничный маршрутизатор.", Status: statusDeleted, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", RouterType: "intermediate", BandwidthMbps: 1000, CostRub: 50000, CreatedByID: operator.ID},
+		{Name: "Core Backbone One", Description: text("Центральный маршрутизатор ядра провайдера для магистрального узла и распределения трафика между сегментами сети."), Status: statusPublished, ImageKey: "provider_routers/core.svg", VideoKey: "videos/core-loop.mp4", BandwidthMbps: num(100000), CostRub: num(980000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "North Ring Hub", Description: text("Промежуточный маршрутизатор кольцевой сети, который агрегирует районные узлы и передаёт трафик на магистраль."), Status: statusPublished, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", BandwidthMbps: num(10000), CostRub: num(310000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Harbor Residence Gateway", Description: text("Конечный маршрутизатор жилого комплекса для распределения доступа к сети между квартирами."), Status: statusPublished, ImageKey: "provider_routers/residential.svg", VideoKey: "videos/residential-loop.mp4", BandwidthMbps: num(1000), CostRub: num(72000), CreatedByID: operator.ID, PublishedAt: &now},
+		{Name: "Riverside Residence Gateway", Status: statusDraft, ImageKey: notUploadedImageKey, VideoKey: notUploadedVideoKey, CreatedByID: student.ID},
+		{Name: "Legacy South Edge", Description: text("Выведенный из эксплуатации пограничный маршрутизатор."), Status: statusDeleted, ImageKey: "provider_routers/ring.svg", VideoKey: "videos/ring-loop.mp4", BandwidthMbps: num(1000), CostRub: num(50000), CreatedByID: operator.ID, PublishedAt: &now},
 	}
 	if err := a.db.Create(&items).Error; err != nil {
 		return err
 	}
-	return a.db.Create(&[]ProviderRouterLike{{ProviderRouterID: items[0].ID, UserID: student.ID}, {ProviderRouterID: items[0].ID, UserID: viewer.ID}, {ProviderRouterID: items[1].ID, UserID: viewer.ID}, {ProviderRouterID: items[2].ID, UserID: student.ID}, {ProviderRouterID: items[2].ID, UserID: operator.ID}}).Error
+	return a.db.Create(&[]ProviderRouterLike{
+		{ProviderRouterID: items[0].ID, UserID: student.ID},
+		{ProviderRouterID: items[0].ID, UserID: viewer.ID},
+		{ProviderRouterID: items[1].ID, UserID: viewer.ID},
+		{ProviderRouterID: items[2].ID, UserID: student.ID},
+		{ProviderRouterID: items[2].ID, UserID: operator.ID},
+	}).Error
 }
 
 func (a *providerRoutersApp) currentCreator() (ProviderRouterUser, error) {
@@ -154,110 +119,122 @@ func (a *providerRoutersApp) currentCreator() (ProviderRouterUser, error) {
 	return user, a.db.Where("email = ?", fixedCreatorEmail).First(&user).Error
 }
 
-func (a *providerRoutersApp) publishedProviderRouters(minimum int) ([]ProviderRouterView, error) {
-	var providerRouters []ProviderRouter
-	query := a.db.Preload("Likes").Where("status = ?", statusPublished)
-	if minimum > 0 {
-		query = query.Where("bandwidth_mbps >= ?", minimum)
-	}
-	if err := query.Order("id").Find(&providerRouters).Error; err != nil {
-		return nil, err
-	}
-	return a.toViews(providerRouters), nil
-}
-
+// feedHandler — GET ленты. Из БД всегда приходит одна строка (First → LIMIT 1):
+// без id — первая опубликованная, с id — эта, с id и next=true — следующая после неё.
 func (a *providerRoutersApp) feedHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		methodNotAllowed(w)
+	published := func() *gorm.DB {
+		return a.db.Preload("Likes").Where("status = ?", statusPublished).Order("id")
+	}
+	var providerRouter ProviderRouter
+	var err error
+	rawID := r.URL.Query().Get("id")
+	switch {
+	case rawID == "":
+		err = published().First(&providerRouter).Error
+	default:
+		id, parseErr := strconv.ParseUint(rawID, 10, 64)
+		if parseErr != nil {
+			http.Error(w, "некорректный id маршрутизатора", http.StatusBadRequest)
+			return
+		}
+		if r.URL.Query().Get("next") == "true" {
+			err = published().Where("id > ?", id).First(&providerRouter).Error
+			if errors.Is(err, gorm.ErrRecordNotFound) { // после последней карточки — снова первая
+				err = published().First(&providerRouter).Error
+			}
+		} else {
+			err = published().Where("id = ?", id).First(&providerRouter).Error
+		}
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		http.NotFound(w, r)
 		return
 	}
-	items, err := a.publishedProviderRouters(0)
 	if err != nil {
 		serverError(w, err)
 		return
 	}
-	if len(items) == 0 {
-		http.NotFound(w, r)
-		return
-	}
-	selected := items[0]
-	if rawID := r.URL.Query().Get("id"); rawID != "" {
-		id, err := strconv.ParseUint(rawID, 10, 64)
-		if err != nil {
-			http.Error(w, "invalid provider_router id", http.StatusBadRequest)
-			return
-		}
-		found := -1
-		for i, item := range items {
-			if item.ID == uint(id) {
-				found = i
-				break
-			}
-		}
-		if found == -1 {
-			http.NotFound(w, r)
-			return
-		}
-		selected = items[found]
-		if r.URL.Query().Get("next") == "true" {
-			selected = items[(found+1)%len(items)]
-		}
-	}
-	a.render(w, "feed.html", map[string]any{"ProviderRouter": selected, "Title": "Лента маршрутизаторов"})
+	a.render(w, "feed.html", map[string]any{"ProviderRouter": a.toView(providerRouter), "Title": "Лента маршрутизаторов"})
 }
 
+// draftHandler — GET страницы добавления: форма «Далее» или заполненный черновик с «Опубликовать».
 func (a *providerRoutersApp) draftHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		methodNotAllowed(w)
-		return
-	}
 	creator, err := a.currentCreator()
 	if err != nil {
 		serverError(w, err)
 		return
 	}
+	page := map[string]any{
+		"Title":           "Добавление маршрутизатора",
+		"Error":           r.URL.Query().Get("error"),
+		"DefaultImageURL": defaultImageURL,
+		"DefaultVideoURL": defaultVideoURL,
+	}
 	var providerRouter ProviderRouter
-	err = a.db.Preload("Likes").Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&providerRouter).Error
-	page := draftPage{Error: r.URL.Query().Get("error")}
-	if err == nil {
-		view := a.toView(providerRouter)
-		page.ProviderRouter = &view
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+	err = a.db.Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&providerRouter).Error
+	switch {
+	case err == nil:
+		page["ProviderRouter"] = a.toView(providerRouter)
+	case !errors.Is(err, gorm.ErrRecordNotFound):
 		serverError(w, err)
 		return
 	}
 	a.render(w, "draft.html", page)
 }
 
-func (a *providerRoutersApp) createDraftHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		methodNotAllowed(w)
+// gridHandler — GET плитки с фильтром по минимальной пропускной способности (фильтр в БД).
+func (a *providerRoutersApp) gridHandler(w http.ResponseWriter, r *http.Request) {
+	rawBandwidth := strings.TrimSpace(r.URL.Query().Get("minBandwidthMbps"))
+	query := a.db.Preload("Likes").Where("status = ?", statusPublished)
+	if rawBandwidth != "" {
+		minimum, err := strconv.Atoi(rawBandwidth)
+		if err != nil || minimum < 0 {
+			http.Error(w, "minBandwidthMbps должен быть неотрицательным целым числом", http.StatusBadRequest)
+			return
+		}
+		query = query.Where("bandwidth_mbps >= ?", minimum)
+	}
+	var providerRouters []ProviderRouter
+	if err := query.Order("id").Find(&providerRouters).Error; err != nil {
+		serverError(w, err)
 		return
 	}
+	views := make([]providerRouterView, 0, len(providerRouters))
+	for _, item := range providerRouters {
+		views = append(views, a.toView(item))
+	}
+	a.render(w, "grid.html", map[string]any{"ProviderRouters": views, "MinBandwidth": rawBandwidth, "Title": "Маршрутизаторы"})
+}
+
+// createDraftHandler — POST «Далее»: только название (файлы на сервер не передаются),
+// в ключи медиа пишутся неверные значения — по заданию ЛР2.
+func (a *providerRoutersApp) createDraftHandler(w http.ResponseWriter, r *http.Request) {
 	creator, err := a.currentCreator()
 	if err != nil {
 		serverError(w, err)
 		return
 	}
 	name := strings.TrimSpace(r.FormValue("name"))
-	bandwidth, cost, valid := subjectNumbersFromForm(r)
-	if name == "" || !valid {
-		http.Redirect(w, r, "/provider_routers/draft?error=Заполните+название,+пропускную+способность+и+стоимость", http.StatusSeeOther)
+	if name == "" {
+		redirectWithError(w, r, "Введите название маршрутизатора")
 		return
 	}
-	providerRouter := ProviderRouter{Name: name, Description: "Новый маршрутизатор провайдера.", Status: statusDraft, ImageKey: defaultImageKey, VideoKey: defaultVideoKey, RouterType: "residential", BandwidthMbps: bandwidth, CostRub: cost, CreatedByID: creator.ID}
+	providerRouter := ProviderRouter{
+		Name:        name,
+		Status:      statusDraft,
+		ImageKey:    notUploadedImageKey,
+		VideoKey:    notUploadedVideoKey,
+		CreatedByID: creator.ID,
+	}
 	if err := a.db.Create(&providerRouter).Error; err != nil {
-		http.Redirect(w, r, "/provider_routers/draft?error=У+вас+уже+есть+черновик", http.StatusSeeOther)
+		redirectWithError(w, r, "У вас уже есть черновик")
 		return
 	}
 	http.Redirect(w, r, "/provider_routers/draft", http.StatusSeeOther)
 }
 
+// publishDraftHandler — POST «Опубликовать»: краткое описание и два поля по теме, статус published.
 func (a *providerRoutersApp) publishDraftHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		methodNotAllowed(w)
-		return
-	}
 	creator, err := a.currentCreator()
 	if err != nil {
 		serverError(w, err)
@@ -265,16 +242,23 @@ func (a *providerRoutersApp) publishDraftHandler(w http.ResponseWriter, r *http.
 	}
 	var providerRouter ProviderRouter
 	if err := a.db.Where("created_by_id = ? AND status = ?", creator.ID, statusDraft).First(&providerRouter).Error; err != nil {
-		http.Redirect(w, r, "/provider_routers/draft?error=Черновик+не+найден", http.StatusSeeOther)
+		redirectWithError(w, r, "Черновик не найден")
 		return
 	}
-	bandwidth, cost, valid := subjectNumbersFromForm(r)
-	if !valid {
-		http.Redirect(w, r, "/provider_routers/draft?error=Введите+корректные+числа", http.StatusSeeOther)
+	description := strings.TrimSpace(r.FormValue("description"))
+	bandwidth, bandwidthErr := strconv.Atoi(r.FormValue("bandwidthMbps"))
+	cost, costErr := strconv.Atoi(r.FormValue("costRub"))
+	if description == "" || bandwidthErr != nil || costErr != nil || bandwidth <= 0 || cost <= 0 {
+		redirectWithError(w, r, "Заполните описание, пропускную способность и стоимость")
 		return
 	}
-	now := time.Now()
-	changes := map[string]any{"bandwidth_mbps": bandwidth, "cost_rub": cost, "status": statusPublished, "published_at": now}
+	changes := map[string]any{
+		"description":    description,
+		"bandwidth_mbps": bandwidth,
+		"cost_rub":       cost,
+		"status":         statusPublished,
+		"published_at":   time.Now(),
+	}
 	if err := a.db.Model(&providerRouter).Updates(changes).Error; err != nil {
 		serverError(w, err)
 		return
@@ -282,83 +266,85 @@ func (a *providerRoutersApp) publishDraftHandler(w http.ResponseWriter, r *http.
 	http.Redirect(w, r, "/provider_routers/feed?id="+strconv.FormatUint(uint64(providerRouter.ID), 10), http.StatusSeeOther)
 }
 
-// providerRouterActionHandler intentionally uses SQL UPDATE for logical deletion in Lab 2.
-func (a *providerRoutersApp) providerRouterActionHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost || !strings.HasSuffix(r.URL.Path, "/delete") {
-		methodNotAllowed(w)
-		return
-	}
-	rawID := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/provider_routers/"), "/delete")
-	id, err := strconv.ParseUint(rawID, 10, 64)
+// deleteProviderRouterHandler — POST «Удалить». Без ORM: SQL UPDATE через database/sql,
+// результат (id изменённой строки) читается курсором rows.Next() / rows.Scan().
+func (a *providerRoutersApp) deleteProviderRouterHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	result := a.db.Exec("UPDATE provider_routers SET status = ? WHERE id = ? AND status = ?", statusDeleted, uint(id), statusPublished)
-	if result.Error != nil {
-		serverError(w, result.Error)
+	sqlDB, err := a.db.DB()
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	rows, err := sqlDB.QueryContext(r.Context(),
+		"UPDATE provider_routers SET status = $1 WHERE id = $2 AND status = $3 RETURNING id",
+		statusDeleted, id, statusPublished)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var deletedID uint64
+		if err := rows.Scan(&deletedID); err != nil {
+			serverError(w, err)
+			return
+		}
+		log.Printf("маршрутизатор %d удалён (status = deleted)", deletedID)
+	}
+	if err := rows.Err(); err != nil {
+		serverError(w, err)
 		return
 	}
 	http.Redirect(w, r, "/provider_routers", http.StatusSeeOther)
 }
 
-func (a *providerRoutersApp) gridHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		methodNotAllowed(w)
-		return
+func (a *providerRoutersApp) toView(item ProviderRouter) providerRouterView {
+	view := providerRouterView{
+		ID:       item.ID,
+		Name:     item.Name,
+		ImageKey: item.ImageKey,
+		VideoKey: item.VideoKey,
+		ImageURL: a.media.URL(item.ImageKey, defaultImageURL),
+		VideoURL: a.media.URL(item.VideoKey, defaultVideoURL),
+		Likes:    len(item.Likes),
 	}
-	rawBandwidth := strings.TrimSpace(r.URL.Query().Get("minBandwidthMbps"))
-	minimum := 0
-	if rawBandwidth != "" {
-		value, err := strconv.Atoi(rawBandwidth)
-		if err != nil || value < 0 {
-			http.Error(w, "minBandwidthMbps must be a non-negative integer", http.StatusBadRequest)
-			return
-		}
-		minimum = value
+	if item.Description != nil {
+		view.Description = *item.Description
 	}
-	items, err := a.publishedProviderRouters(minimum)
-	if err != nil {
-		serverError(w, err)
-		return
+	if item.BandwidthMbps != nil {
+		view.BandwidthMbps = *item.BandwidthMbps
 	}
-	a.render(w, "grid.html", gridPage{ProviderRouters: items, MinBandwidth: rawBandwidth})
+	if item.CostRub != nil {
+		view.CostRub = *item.CostRub
+	}
+	return view
 }
 
-func (a *providerRoutersApp) toViews(items []ProviderRouter) []ProviderRouterView {
-	views := make([]ProviderRouterView, 0, len(items))
-	for _, item := range items {
-		views = append(views, a.toView(item))
-	}
-	return views
+func (v providerRouterView) BandwidthLabel() string {
+	return fmt.Sprintf("%d Мбит/с", v.BandwidthMbps)
 }
-
-func (a *providerRoutersApp) toView(providerRouter ProviderRouter) ProviderRouterView {
-	if strings.TrimSpace(providerRouter.ImageKey) == "" {
-		providerRouter.ImageKey = defaultImageKey
-	}
-	if strings.TrimSpace(providerRouter.VideoKey) == "" {
-		providerRouter.VideoKey = defaultVideoKey
-	}
-	return ProviderRouterView{ProviderRouter: providerRouter, ImageURL: a.mediaURL + "/" + providerRouter.ImageKey, VideoURL: a.mediaURL + "/" + providerRouter.VideoKey, Likes: len(providerRouter.Likes)}
-}
-
-func (r ProviderRouterView) BandwidthLabel() string {
-	return fmt.Sprintf("%d Мбит/с", r.BandwidthMbps)
-}
-func (r ProviderRouterView) CostLabel() string { return fmt.Sprintf("%d ₽", r.CostRub) }
-func (r ProviderRouterView) ShortDescription() string {
-	letters := []rune(r.Description)
+func (v providerRouterView) CostLabel() string { return fmt.Sprintf("%d ₽", v.CostRub) }
+func (v providerRouterView) ShortDescription() string {
+	letters := []rune(v.Description)
 	if len(letters) <= 92 {
-		return r.Description
+		return v.Description
 	}
 	return string(letters[:92]) + "…"
 }
 
-func subjectNumbersFromForm(r *http.Request) (int, int, bool) {
-	bandwidth, bandwidthErr := strconv.Atoi(r.FormValue("bandwidthMbps"))
-	cost, costErr := strconv.Atoi(r.FormValue("costRub"))
-	return bandwidth, cost, bandwidthErr == nil && costErr == nil && bandwidth >= 0 && cost >= 0
+func (a *providerRoutersApp) render(w http.ResponseWriter, name string, data any) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := a.templates.ExecuteTemplate(w, name, data); err != nil {
+		serverError(w, err)
+	}
+}
+
+func redirectWithError(w http.ResponseWriter, r *http.Request, message string) {
+	http.Redirect(w, r, "/provider_routers/draft?error="+template.URLQueryEscaper(message), http.StatusSeeOther)
 }
 
 func envOr(key, fallback string) string {
@@ -367,16 +353,8 @@ func envOr(key, fallback string) string {
 	}
 	return fallback
 }
-func (a *providerRoutersApp) render(w http.ResponseWriter, name string, data any) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := a.templates.ExecuteTemplate(w, name, data); err != nil {
-		serverError(w, err)
-	}
-}
-func methodNotAllowed(w http.ResponseWriter) {
-	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-}
+
 func serverError(w http.ResponseWriter, err error) {
-	log.Printf("server error: %v", err)
-	http.Error(w, "internal server error", http.StatusInternalServerError)
+	log.Printf("ошибка сервера: %v", err)
+	http.Error(w, "внутренняя ошибка сервера", http.StatusInternalServerError)
 }

@@ -1,70 +1,81 @@
-{{ define "feed.html" }}
+{{define "feed.html"}}
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ .Title }}</title>
+  <title>{{.Title}}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
+
   <main class="phone-shell">
+
+    <!-- ---------- Карточка ленты ---------- -->
     <section class="feed-card">
-      <video
-        class="router-video"
-        autoplay
-        muted
-        loop
-        playsinline
-        poster="{{ .ProviderRouter.ImageURL }}"
-      >
-        <source src="{{ .ProviderRouter.VideoURL }}" type="video/mp4">
+
+      <!-- Медиа: постер-изображение и видео из MinIO -->
+      <video class="provider_router_video"
+             autoplay
+             muted
+             loop
+             playsinline
+             poster="{{.ProviderRouter.ImageURL}}">
+        <source src="{{.ProviderRouter.VideoURL}}" type="video/mp4">
       </video>
 
+      <!-- Затемняющий градиент поверх медиа -->
       <div class="feed-shade"></div>
 
+      <!-- Контент поверх медиа: слева текст, справа параметры и иконки -->
       <div class="feed-content">
-        <p class="eyebrow">
-          {{ .ProviderRouter.RouterType }} · #{{ .ProviderRouter.ID }}
-        </p>
 
-        <h1>{{ .ProviderRouter.Name }}</h1>
+        <!-- Левая колонка: название и описание -->
+        <div class="feed-text">
+          <p class="eyebrow">Маршрутизатор · #{{.ProviderRouter.ID}}</p>
+          <h1>{{.ProviderRouter.Name}}</h1>
 
-        <p class="short-description">{{ .ProviderRouter.ShortDescription }}</p>
+          <!-- Краткое описание: не больше двух строк -->
+          <p class="short-description">{{.ProviderRouter.ShortDescription}}</p>
 
-        <details class="more-description">
-          <summary>Ещё</summary>
-          <p>{{ .ProviderRouter.Description }}</p>
-        </details>
+          <!-- Полное описание раскрывается без JavaScript -->
+          <details class="more-description">
+            <summary>Ещё</summary>
+            <p>{{.ProviderRouter.Description}}</p>
+          </details>
+        </div>
 
-        <aside class="feed-side">
+        <!-- Правая колонка: два параметра по теме, лайк, «Следующий» -->
+        <aside class="feed-side" aria-label="Параметры маршрутизатора">
+
+          <!-- Пропускная способность -->
           <div class="metric">
             <span>Пропускная способность</span>
-            <strong>{{ .ProviderRouter.BandwidthLabel }}</strong>
+            <strong>{{.ProviderRouter.BandwidthLabel}}</strong>
           </div>
 
+          <!-- Стоимость -->
           <div class="metric">
             <span>Стоимость</span>
-            <strong>{{ .ProviderRouter.CostLabel }}</strong>
+            <strong>{{.ProviderRouter.CostLabel}}</strong>
           </div>
 
-          <span class="like-icon" aria-label="Лайки">
-            ♥ {{ .ProviderRouter.Likes }}
-          </span>
+          <!-- Лайки -->
+          <span class="like-icon" aria-label="Лайки">♥<b>{{.ProviderRouter.Likes}}</b></span>
 
-          <a
-            class="next-icon"
-            aria-label="Следующий маршрутизатор"
-            href="/provider_routers/feed?id={{ .ProviderRouter.ID }}&next=true"
-          >
-            →
-          </a>
+          <!-- Переход к следующему маршрутизатору -->
+          <a class="next-icon"
+             aria-label="Следующий маршрутизатор"
+             href="/provider_routers/feed?id={{.ProviderRouter.ID}}&next=true">→</a>
+
         </aside>
       </div>
     </section>
   </main>
 
-  {{ template "nav" . }}
+  <!-- ---------- Нижняя навигация ---------- -->
+  {{template "nav" .}}
+
 </body>
 </html>
-{{ end }}
+{{end}}
