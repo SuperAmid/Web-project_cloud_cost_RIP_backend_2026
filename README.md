@@ -32,8 +32,7 @@
 | `static/styles.css` | все стили |
 | `static/media/` | фото и видео по умолчанию на SSR-сервере |
 | `assets/provider-media/` | файлы, которые `minio-init` загружает в бакет MinIO |
-| `docs/lab2-er-diagram.mdj` | ER-диаграмма в StarUML (+ экспорт `docs/lab2-er-diagram.png`) |
-| `docs/lab2-fixes.md` | исправления по замечаниям |
+| `docs/lab2-er-diagram.mdj` | ER-диаграмма в StarUML |
 
 ## Запуск
 
@@ -70,27 +69,3 @@ go run .
 | `provider_router_likes` | `id` PK, `provider_router_id` FK, `user_id` FK, уникальная пара (`provider_router_id`, `user_id`) |
 
 Каскадного удаления нет: все внешние ключи `ON UPDATE RESTRICT ON DELETE RESTRICT`. Частичный уникальный индекс `one_draft_provider_router_per_creator` — не больше одного черновика у пользователя.
-
-## Порядок показа (скриншоты `docs/screenshots/`)
-
-Сняты на чистой БД после `docker compose up -d` и `go run .`. SQL-результаты — `psql` (в Adminer те же запросы: «SQL-запрос»).
-
-| № | Файл | Что показывает |
-| --- | --- | --- |
-| 1 | `01-sql-start.png` | начальные данные: три опубликованных, черновик (NULL в 4 необязательных полях, неверные ключи медиа), удалённый |
-| 2 | `02-sql-likes.png` | лайки: собственный `id`, пара (маршрутизатор, пользователь) уникальна |
-| 3 | `03-sql-users.png` | пользователи без `created_at` |
-| 4 | `04-feed.png` | лента: первая опубликованная карточка, параметры и иконки справа |
-| 5 | `05-feed-next.png` | `?id=1&next=true` — следующая карточка (БД возвращает одну строку `LIMIT 1`) |
-| 6 | `06-feed-wrap.png` | после последней — снова первая |
-| 7 | `07-grid.png` | плитка, кнопки «Удалить» |
-| 8 | `08-grid-filter.png` | фильтр слайдером `minBandwidthMbps=10000` (фильтрация в БД) |
-| 9 | `09-draft-publish-form.png` | черновик есть → «Опубликовать»: фото и видео по умолчанию с SSR, название текстом, описание и два поля по теме |
-| 10 | `10-after-publish.png` | опубликованная карточка в ленте |
-| 11 | `11-sql-published.png` | в БД заполнены `description`, `bandwidth_mbps`, `cost_rub`, `published_at`, статус `published` |
-| 12 | `12-draft-step1.png` | черновика нет → «Далее»: фото, видео (по умолчанию) и только название |
-| 13 | `13-after-next-defaults.png` | после «Далее»: черновик создан, медиа по умолчанию |
-| 14 | `14-sql-created.png` | новый черновик: только название, неверные ключи `not-uploaded.*`, остальное NULL |
-| 15 | `15-after-delete.png` | «Удалить» на плитке — карточка пропала |
-| 16 | `16-sql-deleted.png` | статус `deleted` (UPDATE … RETURNING через курсор `rows.Next()`) |
-| 17 | `17-feed-deleted-404.png` | удалённую карточку открыть нельзя — `404` |
