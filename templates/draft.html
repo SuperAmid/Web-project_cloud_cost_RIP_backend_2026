@@ -7,7 +7,10 @@
   <title>{{.Title}}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body class="page-draft">
+  <!-- Экран телефона: на компьютере показывается рамкой, на телефоне — во весь экран -->
+  <div class="phone">
+  {{ template "statusbar" . }}
 
   <main class="phone-shell">
 
@@ -71,6 +74,7 @@
 
   <!-- ---------- Нижняя навигация ---------- -->
   {{template "nav" .}}
+  </div>
 
 </body>
 </html>

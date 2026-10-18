@@ -1,15 +1,37 @@
 {{define "nav"}}
-<!-- ---------- Нижняя навигация ---------- -->
+<!-- ---------- Нижняя навигация: три вкладки с иконками ---------- -->
 <nav class="bottom-nav" aria-label="Основная навигация">
 
   <!-- Лента маршрутизаторов -->
-  <a href="/provider_routers/feed">Лента</a>
+  <a class="nav-feed" href="/provider_routers/feed">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M10 9l5 3-5 3z" class="fill"/></svg>
+    Лента
+  </a>
 
   <!-- Добавление нового маршрутизатора -->
-  <a href="/provider_routers/draft">Добавление</a>
+  <a class="nav-draft" href="/provider_routers/draft">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+    Добавление
+  </a>
 
-  <!-- Список всех маршрутизаторов -->
-  <a href="/provider_routers">Маршрутизаторы</a>
+  <!-- Плитка всех маршрутизаторов -->
+  <a class="nav-grid" href="/provider_routers">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
+    Маршрутизаторы
+  </a>
 
 </nav>
+{{end}}
+{{define "statusbar"}}
+<!-- ---------- Строка состояния телефона: время, камера, сеть и заряд ---------- -->
+<div class="status-bar" aria-hidden="true">
+  <span class="sb-time">{{ clock }}</span>
+  <span class="sb-camera"></span>
+  <span class="sb-icons">
+    <svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg viewBox="0 0 16 12"><path d="M8 11.5 1 4.3a10 10 0 0 1 14 0z"/></svg>
+    <span class="sb-battery"><span class="sb-level"></span></span>
+    <span class="sb-percent">87%</span>
+  </span>
+</div>
 {{end}}

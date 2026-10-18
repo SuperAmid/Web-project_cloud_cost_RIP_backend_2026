@@ -7,7 +7,10 @@
   <title>{{.Title}}</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body>
+<body class="page-grid">
+  <!-- Экран телефона: на компьютере показывается рамкой, на телефоне — во весь экран -->
+  <div class="phone">
+  {{ template "statusbar" . }}
 
   <main class="phone-shell">
 
@@ -55,14 +58,14 @@
             <!-- Название -->
             <h2>{{.Name}}</h2>
 
-            <!-- Пропускная способность -->
-            <p>{{.BandwidthLabel}}</p>
-
-            <!-- Стоимость -->
-            <p>{{.CostLabel}}</p>
+            <!-- Поля по теме: пропускная способность и стоимость -->
+            <p class="tile-chips">
+              <span class="chip">{{.BandwidthLabel}}</span>
+              <span class="chip">{{.CostLabel}}</span>
+            </p>
 
             <!-- Лайки -->
-            <span>♥ {{.Likes}}</span>
+            <p class="tile-likes">♥ {{.Likes}}</p>
           </div>
         </a>
       {{else}}
@@ -75,6 +78,7 @@
 
   <!-- ---------- Нижняя навигация ---------- -->
   {{template "nav" .}}
+  </div>
 
 </body>
 </html>

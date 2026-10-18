@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ProviderRouterStatus string
@@ -55,7 +56,10 @@ var providerRouters = []ProviderRouter{
 
 func main() {
 	app := &providerRoutersApp{
-		templates:       template.Must(template.ParseGlob("templates/*.html")),
+		templates: template.Must(template.New("").Funcs(template.FuncMap{
+			// clock — время для строки состояния телефона (рендерится на сервере, без JavaScript)
+			"clock": func() string { return time.Now().Format("15:04") },
+		}).ParseGlob("templates/*.html")),
 		mediaURL:        strings.TrimRight(envOr("MINIO_PUBLIC_URL", "http://localhost:9000/provider-media"), "/"),
 		providerRouters: providerRouters,
 	}
@@ -94,7 +98,7 @@ func (a *providerRoutersApp) feedHandler(w http.ResponseWriter, r *http.Request)
 	}
 	items := a.publishedProviderRouters()
 	if len(items) == 0 {
-		http.NotFound(w, r)
+		a.notFound(w)
 		return
 	}
 	selected := items[0]
@@ -112,7 +116,7 @@ func (a *providerRoutersApp) feedHandler(w http.ResponseWriter, r *http.Request)
 			}
 		}
 		if found == -1 {
-			http.NotFound(w, r)
+			a.notFound(w)
 			return
 		}
 		selected = items[found]
@@ -159,6 +163,16 @@ func (a *providerRoutersApp) gridHandler(w http.ResponseWriter, r *http.Request)
 		}
 	}
 	a.render(w, "grid.html", map[string]any{"ProviderRouters": views, "MinBandwidth": rawBandwidth, "Title": "Маршрутизаторы"})
+}
+
+// notFound — страница 404 в том же оформлении (рамка телефона и меню),
+// например для удалённой или несуществующей карточки ленты.
+func (a *providerRoutersApp) notFound(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusNotFound)
+	if err := a.templates.ExecuteTemplate(w, "notfound.html", map[string]any{"Title": "Маршрутизатор не найден"}); err != nil {
+		log.Printf("template notfound.html: %v", err)
+	}
 }
 
 func (a *providerRoutersApp) render(w http.ResponseWriter, name string, data any) {

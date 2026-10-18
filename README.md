@@ -39,7 +39,8 @@
 | `templates/feed.html` | шаблон страницы «Лента» |
 | `templates/draft.html` | шаблон страницы «Добавление» |
 | `templates/grid.html` | шаблон страницы «Маршрутизаторы» (плитка с фильтром) |
-| `templates/partials.html` | общий фрагмент — нижняя навигация `{{template "nav"}}` |
+| `templates/partials.html` | общие фрагменты: нижняя навигация `{{template "nav"}}` и строка состояния телефона `{{template "statusbar"}}` (время, камера, заряд) |
+| `templates/notfound.html` | страница 404 (удалённая или несуществующая карточка) |
 | `static/styles.css` | все стили (CSS в отдельном файле) |
 | `assets/provider-media/` | изображения и видео, которые загружаются в MinIO |
 | `docker-compose.yml` | MinIO и загрузка медиа в бакет `provider-media` |
