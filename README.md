@@ -27,7 +27,7 @@ API: `http://localhost:8080/api`. PostgreSQL: `localhost:5433`, БД `provider_r
 
 Если таблицы уже были созданы старой версией, `001_init` считается выполненной, остальные применяются поверх. Пустая БД заполняется начальными данными (то же — в `db/seed.sql` для ручного импорта).
 
-Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia). Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности входа и публикации (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
+Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia). Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности бизнес-процесса создателя: вход, список, добавление, черновик, публикация, лента, лайк, выход (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
 
 ## Тесты
 
@@ -237,6 +237,8 @@ docker compose exec redis redis-cli -a provider_routers_redis_password --scan --
 docker compose exec redis redis-cli -a provider_routers_redis_password GET "provider_routers:jwt:blacklist:<токен>"
 docker compose exec redis redis-cli -a provider_routers_redis_password TTL "provider_routers:jwt:blacklist:<токен>"
 ```
+
+**StarUML.** Открыть `docs/provider_routers.mdj` → «Диаграмма последовательности: бизнес-процесс создателя (ЛР4)» → выделить сообщение. В свойстве `signature` выбрана операция домена из диаграммы классов, в `arguments` — ключевые входные данные (у ответов — выходные).
 
 **Изменения в БД** (Adminer → SQL-запрос):
 
