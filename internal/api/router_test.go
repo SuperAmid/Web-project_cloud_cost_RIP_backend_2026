@@ -3,12 +3,14 @@ package api
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"provider_routers/internal/auth"
 	"provider_routers/internal/ds"
 	"provider_routers/internal/handler"
 	"provider_routers/internal/repository"
@@ -19,8 +21,39 @@ type fakeRepo struct {
 	users map[string]ds.ProviderRouterUser
 }
 
-func (f *fakeRepo) CurrentProviderRouterUser() (ds.ProviderRouterUser, error) {
-	return ds.ProviderRouterUser{ID: 1, DisplayName: "Студент"}, nil
+// fakeBlacklist — blacklist токенов в памяти вместо Redis.
+type fakeBlacklist struct{ tokens map[string]string }
+
+func (b *fakeBlacklist) WriteJWTToBlacklist(_ context.Context, token, email string, _ time.Duration) error {
+	b.tokens[token] = email
+	return nil
+}
+func (b *fakeBlacklist) IsJWTBlacklisted(_ context.Context, token string) (bool, error) {
+	_, ok := b.tokens[token]
+	return ok, nil
+}
+
+func newTestRouter() (http.Handler, *auth.Manager, *fakeBlacklist) {
+	repo := &fakeRepo{users: map[string]ds.ProviderRouterUser{}}
+	tokens := auth.NewManager("test-secret", time.Hour)
+	blacklist := &fakeBlacklist{tokens: map[string]string{}}
+	return NewRouter(handler.New(repo, repo, tokens, blacklist)), tokens, blacklist
+}
+
+func do(router http.Handler, method, url, token, contentType string, body *bytes.Buffer) *httptest.ResponseRecorder {
+	if body == nil {
+		body = &bytes.Buffer{}
+	}
+	request := httptest.NewRequest(method, url, body)
+	if contentType != "" {
+		request.Header.Set("Content-Type", contentType)
+	}
+	if token != "" {
+		request.Header.Set("Authorization", "Bearer "+token)
+	}
+	recorder := httptest.NewRecorder()
+	router.ServeHTTP(recorder, request)
+	return recorder
 }
 func (f *fakeRepo) published() ds.ProviderRouter {
 	now := time.Now()
@@ -84,10 +117,10 @@ func multipartBody(t *testing.T) (*bytes.Buffer, string) {
 	return &body, w.FormDataContentType()
 }
 
-// Все 10 маршрутов зарегистрированы и отвечают ожидаемыми кодами.
+// Все 10 маршрутов зарегистрированы и отвечают ожидаемыми кодами (с токеном пользователя 1).
 func TestRoutes(t *testing.T) {
-	repo := &fakeRepo{users: map[string]ds.ProviderRouterUser{}}
-	router := NewRouter(handler.New(repo, repo))
+	router, tokens, _ := newTestRouter()
+	token, _, _ := tokens.Issue(1, "student@provider-routers.local")
 	upload, contentType := multipartBody(t)
 	cases := []struct {
 		method, url, body, contentType string
@@ -113,23 +146,15 @@ func TestRoutes(t *testing.T) {
 		{"POST", "/api/provider_router_users/register", `{"email":"a@b.ru","display_name":"A","password":"secret1"}`, "application/json", nil, 409},
 		{"POST", "/api/provider_router_users/login", `{"email":"a@b.ru","password":"secret1"}`, "application/json", nil, 200},
 		{"POST", "/api/provider_router_users/login", `{"email":"a@b.ru","password":"wrong"}`, "application/json", nil, 401},
-		{"POST", "/api/provider_router_users/logout", "", "", nil, 200},
 		{"GET", "/api/unknown", "", "", nil, 404},
 		{"PATCH", "/api/provider_routers/106", "", "", nil, 404}, // неизвестный метод → JSON 404 из catch-all
 	}
 	for _, c := range cases {
-		var body *bytes.Buffer
-		if c.raw != nil {
-			body = c.raw
-		} else {
+		body := c.raw
+		if body == nil {
 			body = bytes.NewBufferString(c.body)
 		}
-		request := httptest.NewRequest(c.method, c.url, body)
-		if c.contentType != "" {
-			request.Header.Set("Content-Type", c.contentType)
-		}
-		recorder := httptest.NewRecorder()
-		router.ServeHTTP(recorder, request)
+		recorder := do(router, c.method, c.url, token, c.contentType, body)
 		if recorder.Code != c.want {
 			t.Errorf("%s %s: код %d, ожидался %d (%s)", c.method, c.url, recorder.Code, c.want, recorder.Body.String())
 		}
@@ -139,4 +164,71 @@ func TestRoutes(t *testing.T) {
 	}
 }
 
-var _ http.Handler = NewRouter(handler.New(&fakeRepo{}, &fakeRepo{}))
+// Гость: чтение доступно, методы создателя — 401.
+func TestGuestAccess(t *testing.T) {
+	router, _, _ := newTestRouter()
+	for _, url := range []string{"/api/provider_routers", "/api/provider_routers/feed"} {
+		if code := do(router, "GET", url, "", "", nil).Code; code != 200 {
+			t.Errorf("гость GET %s: %d, ожидался 200", url, code)
+		}
+	}
+	for _, c := range []struct{ method, url string }{
+		{"GET", "/api/provider_routers/draft"},
+		{"POST", "/api/provider_routers"},
+		{"PUT", "/api/provider_routers/106/publish"},
+		{"DELETE", "/api/provider_routers/106"},
+		{"POST", "/api/provider_routers/101/like"},
+		{"POST", "/api/provider_router_users/logout"},
+	} {
+		if code := do(router, c.method, c.url, "", "", nil).Code; code != 401 {
+			t.Errorf("гость %s %s: %d, ожидался 401", c.method, c.url, code)
+		}
+	}
+	if code := do(router, "GET", "/api/provider_routers/draft", "not-a-jwt", "", nil).Code; code != 401 {
+		t.Errorf("поддельный токен: %d, ожидался 401", code)
+	}
+}
+
+// Вход → публикация с токеном → выход → тот же токен больше не принимается.
+func TestLoginLogout(t *testing.T) {
+	router, _, blacklist := newTestRouter()
+	register := bytes.NewBufferString(`{"email":"ivan@b.ru","display_name":"Иван","password":"secret1"}`)
+	if code := do(router, "POST", "/api/provider_router_users/register", "", "application/json", register).Code; code != 201 {
+		t.Fatalf("регистрация: %d", code)
+	}
+	login := do(router, "POST", "/api/provider_router_users/login", "", "application/json", bytes.NewBufferString(`{"email":"ivan@b.ru","password":"secret1"}`))
+	var response struct {
+		AccessToken string `json:"access_token"`
+		TokenType   string `json:"token_type"`
+	}
+	if err := json.Unmarshal(login.Body.Bytes(), &response); err != nil || response.AccessToken == "" || response.TokenType != "Bearer" {
+		t.Fatalf("вход: %s", login.Body.String())
+	}
+	publish := `{"description":"d","bandwidth_mbps":1,"cost_rub":1}`
+	if code := do(router, "PUT", "/api/provider_routers/106/publish", response.AccessToken, "application/json", bytes.NewBufferString(publish)).Code; code != 200 {
+		t.Fatalf("публикация с токеном: %d", code)
+	}
+	if code := do(router, "POST", "/api/provider_router_users/logout", response.AccessToken, "", nil).Code; code != 200 {
+		t.Fatalf("выход: %d", code)
+	}
+	if blacklist.tokens[response.AccessToken] != "ivan@b.ru" {
+		t.Fatalf("токен не попал в blacklist: %v", blacklist.tokens)
+	}
+	if code := do(router, "PUT", "/api/provider_routers/106/publish", response.AccessToken, "application/json", bytes.NewBufferString(publish)).Code; code != 401 {
+		t.Fatalf("после выхода токен должен отклоняться, код %d", code)
+	}
+	if code := do(router, "GET", "/api/provider_routers", response.AccessToken, "", nil).Code; code != 200 {
+		t.Fatalf("список доступен и после выхода: %d", code)
+	}
+}
+
+func TestSwagger(t *testing.T) {
+	router, _, _ := newTestRouter()
+	doc := do(router, "GET", "/swagger/doc.json", "", "", nil)
+	if doc.Code != 200 || !bytes.Contains(doc.Body.Bytes(), []byte(`"BearerAuth"`)) {
+		t.Fatalf("doc.json: %d", doc.Code)
+	}
+	if page := do(router, "GET", "/swagger/", "", "", nil); page.Code != 200 || !bytes.Contains(page.Body.Bytes(), []byte("swagger-ui")) {
+		t.Fatalf("страница Swagger: %d", page.Code)
+	}
+}

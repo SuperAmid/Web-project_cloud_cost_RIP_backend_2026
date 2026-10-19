@@ -1,10 +1,11 @@
+-- Пароль всех трёх пользователей: password123.
 -- Обычно не нужен: сервер при первом запуске сам применяет migrations/*.up.sql и наполняет пустую БД.
 -- Для ручного импорта в Adminer — после всех миграций. 104 — черновик оператора (description,
 -- bandwidth_mbps, cost_rub, published_at заполняются при публикации), 105 — удалён.
-INSERT INTO provider_router_users (id, email, display_name) VALUES
-  (1, 'student@provider-routers.local', 'Студент РИП'),
-  (2, 'operator@provider-routers.local', 'Оператор сети'),
-  (3, 'viewer@provider-routers.local', 'Наблюдатель')
+INSERT INTO provider_router_users (id, email, display_name, password_hash) VALUES
+  (1, 'student@provider-routers.local', 'Студент РИП', '$2a$10$qu9d1jJJ.Fg/2hczwKxGaexugeI7qLrKAZlJRyo.vtbrCwvEUHgva'),
+  (2, 'operator@provider-routers.local', 'Оператор сети', '$2a$10$qu9d1jJJ.Fg/2hczwKxGaexugeI7qLrKAZlJRyo.vtbrCwvEUHgva'),
+  (3, 'viewer@provider-routers.local', 'Наблюдатель', '$2a$10$qu9d1jJJ.Fg/2hczwKxGaexugeI7qLrKAZlJRyo.vtbrCwvEUHgva')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO provider_routers (id, name, description, status, image_key, video_key, bandwidth_mbps, cost_rub, created_by_id, published_at) VALUES

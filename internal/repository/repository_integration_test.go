@@ -49,9 +49,6 @@ func testRepository(t *testing.T) *Repository {
 	if err := db.Exec(`DROP TABLE IF EXISTS provider_router_likes, provider_routers, provider_router_users, schema_migrations CASCADE`).Error; err != nil {
 		t.Fatal(err)
 	}
-	currentProviderRouterUserMu.Lock()
-	currentProviderRouterUser = nil
-	currentProviderRouterUserMu.Unlock()
 	repo := NewWithDB(db, &fakeMedia{})
 	if err := repo.MigrateAndSeed("../../migrations"); err != nil {
 		t.Fatal(err)
@@ -66,7 +63,7 @@ func files() (*multipart.FileHeader, *multipart.FileHeader) {
 func TestStatusTransitions(t *testing.T) {
 	repo := testRepository(t)
 	ctx := context.Background()
-	user, err := repo.CurrentProviderRouterUser()
+	user, err := repo.FindProviderRouterUserByEmail("student@provider-routers.local")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +123,7 @@ func TestStatusTransitions(t *testing.T) {
 
 func TestForeignRecordsAndFilter(t *testing.T) {
 	repo := testRepository(t)
-	user, _ := repo.CurrentProviderRouterUser()
+	user, _ := repo.FindProviderRouterUserByEmail("student@provider-routers.local")
 	var foreign ds.ProviderRouter
 	if err := repo.db.Where("status = ?", ds.ProviderRouterStatusPublished).First(&foreign).Error; err != nil {
 		t.Fatal(err)

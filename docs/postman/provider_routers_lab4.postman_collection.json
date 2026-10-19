@@ -1,0 +1,560 @@
+{
+  "info": {
+    "name": "provider_routers — ЛР4",
+    "description": "Веб-сервис маршрутизаторов провайдера с авторизацией по JWT. Запросы идут в порядке показа. Токен из запроса 01 сохраняется в переменную token и передаётся в заголовке Authorization: Bearer.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01 Вход: получить JWT",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "login"
+          ]
+        },
+        "description": "Пароль пользователей из начальных данных — password123. Скрипт сохраняет access_token в переменную token, она подставляется в Authorization: Bearer во все запросы коллекции.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@provider-routers.local\",\n  \"password\": \"password123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.access_token) { pm.collectionVariables.set('token', body.access_token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Список без токена (гость)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers?min_bandwidth_mbps=10000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers"
+          ],
+          "query": [
+            {
+              "key": "min_bandwidth_mbps",
+              "value": "10000"
+            }
+          ]
+        },
+        "description": "Чтение доступно без авторизации: 200, is_own = 0.",
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "03 Список с токеном",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers?min_bandwidth_mbps=10000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers"
+          ],
+          "query": [
+            {
+              "key": "min_bandwidth_mbps",
+              "value": "10000"
+            }
+          ]
+        },
+        "description": "Тот же запрос с JWT: is_own = 1 у своих записей."
+      }
+    },
+    {
+      "name": "04 Добавление с фото и видео",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers"
+          ]
+        },
+        "description": "Выберите файлы в полях image и video. Создаёт черновик, файлы уходят в MinIO.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "Ozerki Residence Gateway",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "src": [],
+              "description": ".jpg .jpeg .png .webp .svg до 10 МБ"
+            },
+            {
+              "key": "video",
+              "type": "file",
+              "src": [],
+              "description": ".mp4 .webm .mov до 50 МБ"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Черновик (без id)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/draft",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "draft"
+          ]
+        },
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Публикация без токена → 401",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/publish",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "publish"
+          ]
+        },
+        "description": "Гостю методы создателя недоступны: 401.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "07 Публикация с токеном",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/publish",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "publish"
+          ]
+        },
+        "description": "Авторизованный создатель публикует свой черновик: 200, заполнены описание, поля по теме, published_at.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "08 Лента без id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/feed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "feed"
+          ]
+        },
+        "description": ""
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('feed_id', pm.response.json().id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Лента по id, следующий",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/feed?id={{feed_id}}&next=true",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "feed"
+          ],
+          "query": [
+            {
+              "key": "id",
+              "value": "{{feed_id}}"
+            },
+            {
+              "key": "next",
+              "value": "true"
+            }
+          ]
+        },
+        "description": ""
+      }
+    },
+    {
+      "name": "10 Лайк (1 — поставить, 0 — снять)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/like",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "like"
+          ]
+        },
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"like\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "11 Удаление (soft delete)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}"
+          ]
+        },
+        "description": ""
+      }
+    },
+    {
+      "name": "12 Регистрация",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "register"
+          ]
+        },
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"amid{{$timestamp}}@provider-routers.local\",\n  \"display_name\": \"Амид Гаджиев\",\n  \"password\": \"secret123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('user_email', pm.response.json().email);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Вход новым пользователем",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "login"
+          ]
+        },
+        "description": "Вход только что зарегистрированным пользователем (email сохранён запросом 12).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{user_email}}\",\n  \"password\": \"secret123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.access_token) { pm.collectionVariables.set('token', body.access_token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Выход: токен в blacklist Redis",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "logout"
+          ]
+        },
+        "description": "Токен попадает в Redis до конца срока действия. Проверка: redis-cli -a provider_routers_redis_password --scan --pattern \"provider_routers:*\". Следующий запрос с этим токеном к методам создателя → 401."
+      }
+    },
+    {
+      "name": "15 Публикация после выхода → 401",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/publish",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "publish"
+          ]
+        },
+        "description": "Тот же токен после выхода не принимается: 401.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "provider_router_id",
+      "value": ""
+    },
+    {
+      "key": "feed_id",
+      "value": ""
+    },
+    {
+      "key": "user_email",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}

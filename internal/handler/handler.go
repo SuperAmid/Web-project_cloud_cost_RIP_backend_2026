@@ -11,18 +11,22 @@ import (
 	"strconv"
 	"strings"
 
+	"provider_routers/internal/auth"
 	"provider_routers/internal/repository"
 	"provider_routers/internal/serializer"
 )
 
-// Handler — обработчики двух доменов. Зависит только от интерфейсов.
+// Handler — обработчики двух доменов. Зависит от интерфейсов репозиториев,
+// менеджера JWT и blacklist токенов.
 type Handler struct {
-	repo  ProviderRouterRepository
-	users ProviderRouterUserRepository
+	repo      ProviderRouterRepository
+	users     ProviderRouterUserRepository
+	tokens    *auth.Manager
+	blacklist TokenBlacklist
 }
 
-func New(repo ProviderRouterRepository, users ProviderRouterUserRepository) *Handler {
-	return &Handler{repo: repo, users: users}
+func New(repo ProviderRouterRepository, users ProviderRouterUserRepository, tokens *auth.Manager, blacklist TokenBlacklist) *Handler {
+	return &Handler{repo: repo, users: users, tokens: tokens, blacklist: blacklist}
 }
 
 func writeJSON(w http.ResponseWriter, status int, body any) {

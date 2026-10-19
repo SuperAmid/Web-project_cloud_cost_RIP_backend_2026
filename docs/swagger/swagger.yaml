@@ -1,0 +1,505 @@
+basePath: /api
+definitions:
+  serializer.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  serializer.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  serializer.ProviderRouterDraft:
+    properties:
+      bandwidth_mbps:
+        type: integer
+      cost_rub:
+        type: integer
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image_key:
+        type: string
+      image_url:
+        type: string
+      name:
+        type: string
+      published_at:
+        type: string
+      status:
+        type: string
+      video_key:
+        type: string
+      video_url:
+        type: string
+    type: object
+  serializer.ProviderRouterFeedItem:
+    properties:
+      bandwidth_mbps:
+        type: integer
+      cost_rub:
+        type: integer
+      creator_name:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_liked:
+        type: integer
+      likes_count:
+        type: integer
+      name:
+        type: string
+      published_at:
+        type: string
+      video_url:
+        type: string
+    type: object
+  serializer.ProviderRouterLikeRequest:
+    properties:
+      like:
+        type: integer
+    type: object
+  serializer.ProviderRouterLikeResponse:
+    properties:
+      is_liked:
+        type: integer
+      likes_count:
+        type: integer
+      provider_router_id:
+        type: integer
+    type: object
+  serializer.ProviderRouterListItem:
+    properties:
+      bandwidth_mbps:
+        type: integer
+      cost_rub:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_own:
+        type: integer
+      likes_count:
+        type: integer
+      name:
+        type: string
+      published_at:
+        type: string
+      video_url:
+        type: string
+    type: object
+  serializer.ProviderRouterPublishRequest:
+    properties:
+      bandwidth_mbps:
+        type: integer
+      cost_rub:
+        type: integer
+      description:
+        type: string
+    type: object
+  serializer.ProviderRouterUserLoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  serializer.ProviderRouterUserLoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        description: секунд до истечения
+        example: 3600
+        type: integer
+      token_type:
+        example: Bearer
+        type: string
+      user:
+        $ref: '#/definitions/serializer.ProviderRouterUserResponse'
+    type: object
+  serializer.ProviderRouterUserRegisterRequest:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  serializer.ProviderRouterUserResponse:
+    properties:
+      display_name:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: |-
+    Маршрутизаторы сети провайдера: список, лента, черновик, публикация, лайки.
+    Без авторизации доступно только чтение. Чтобы вызвать методы создателя,
+    выполните вход и нажмите Authorize: Bearer <access_token>.
+  title: provider_routers API
+  version: "1.0"
+paths:
+  /provider_router_users/login:
+    post:
+      consumes:
+      - application/json
+      description: 'Токен из access_token передаётся в заголовке Authorization: Bearer
+        <токен>.'
+      parameters:
+      - description: email и пароль
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.ProviderRouterUserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterUserLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      summary: 'Вход: выдача JWT'
+      tags:
+      - provider_router_users
+  /provider_router_users/logout:
+    post:
+      description: Текущий токен попадает в blacklist Redis до конца срока действия.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.MessageResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выход
+      tags:
+      - provider_router_users
+  /provider_router_users/register:
+    post:
+      consumes:
+      - application/json
+      description: Пароль хранится как bcrypt-хеш.
+      parameters:
+      - description: email, имя, пароль 6–72 байта
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.ProviderRouterUserRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      summary: Регистрация
+      tags:
+      - provider_router_users
+  /provider_routers:
+    get:
+      description: Только опубликованные, фильтры выполняются в БД. is_own = 1, если
+        создатель — текущий пользователь (для гостя 0). Доступно без авторизации.
+      parameters:
+      - description: Минимальная пропускная способность, Мбит/с
+        in: query
+        name: min_bandwidth_mbps
+        type: integer
+      - description: Максимальная стоимость, ₽
+        in: query
+        name: max_cost_rub
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/serializer.ProviderRouterListItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Список маршрутизаторов
+      tags:
+      - provider_routers
+    post:
+      consumes:
+      - multipart/form-data
+      description: Файлы сохраняются в MinIO под латинскими именами, создатель — пользователь
+        из токена.
+      parameters:
+      - description: Название
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 'Фото: jpg, jpeg, png, webp, svg до 10 МБ'
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: 'Видео: mp4, webm, mov до 50 МБ'
+        in: formData
+        name: video
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterDraft'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание черновика с фото и видео
+      tags:
+      - provider_routers
+  /provider_routers/{id}:
+    delete:
+      description: status = deleted, запись больше не отдаётся клиенту.
+      parameters:
+      - description: Id маршрутизатора
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterDraft'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Логическое удаление своей записи
+      tags:
+      - provider_routers
+  /provider_routers/{id}/like:
+    post:
+      consumes:
+      - application/json
+      description: like = 1 ставит лайк, 0 снимает.
+      parameters:
+      - description: Id маршрутизатора
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 0 или 1
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.ProviderRouterLikeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterLikeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Лайк от текущего пользователя
+      tags:
+      - provider_routers
+  /provider_routers/{id}/publish:
+    put:
+      consumes:
+      - application/json
+      description: draft → published, published_at ставит сервер. В той же транзакции
+        заполняются описание и два поля по теме.
+      parameters:
+      - description: Id черновика
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Описание и поля по теме
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.ProviderRouterPublishRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterDraft'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Публикация своего черновика
+      tags:
+      - provider_routers
+  /provider_routers/draft:
+    get:
+      description: Не более одного черновика у пользователя, id не указывается.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterDraft'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Черновик текущего пользователя
+      tags:
+      - provider_routers
+  /provider_routers/feed:
+    get:
+      description: Без id — первая опубликованная, с id — эта, с id и next=true —
+        следующая (после последней — первая). is_liked = 1, если текущий пользователь
+        лайкнул (для гостя 0). Доступно без авторизации.
+      parameters:
+      - description: Id маршрутизатора
+        in: query
+        name: id
+        type: integer
+      - description: Следующая после id
+        in: query
+        name: next
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.ProviderRouterFeedItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/serializer.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: 'Лента: одна карточка'
+      tags:
+      - provider_routers
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'Введите: Bearer <access_token из ответа входа>'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

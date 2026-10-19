@@ -27,7 +27,7 @@ type ProviderRouterUserRegisterRequest struct {
 	Password    string `json:"password"`
 }
 
-// ProviderRouterUserLoginRequest — тело POST /api/provider_router_users/login (заглушка до ЛР4).
+// ProviderRouterUserLoginRequest — тело POST /api/provider_router_users/login.
 type ProviderRouterUserLoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -93,6 +93,19 @@ type ProviderRouterUserResponse struct {
 	ID          uint   `json:"id"`
 	Email       string `json:"email"`
 	DisplayName string `json:"display_name"`
+}
+
+// ProviderRouterUserLoginResponse — ответ входа: JWT для заголовка Authorization.
+type ProviderRouterUserLoginResponse struct {
+	AccessToken string                     `json:"access_token"`
+	TokenType   string                     `json:"token_type" example:"Bearer"`
+	ExpiresIn   int64                      `json:"expires_in" example:"3600"` // секунд до истечения
+	User        ProviderRouterUserResponse `json:"user"`
+}
+
+// MessageResponse — ответ без данных, только сообщение.
+type MessageResponse struct {
+	Message string `json:"message"`
 }
 
 // ErrorResponse — единый формат ошибки.

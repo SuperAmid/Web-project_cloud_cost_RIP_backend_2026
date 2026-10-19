@@ -3,15 +3,16 @@ package handler
 import (
 	"context"
 	"mime/multipart"
+	"time"
 
 	"provider_routers/internal/ds"
+	"provider_routers/internal/redis"
 	"provider_routers/internal/repository"
 )
 
 // ProviderRouterRepository — интерфейс домена маршрутизаторов (/api/provider_routers).
 // Обработчики зависят от интерфейса, реализация — *repository.Repository.
 type ProviderRouterRepository interface {
-	CurrentProviderRouterUser() (ds.ProviderRouterUser, error)
 	ListProviderRouters(filter repository.ProviderRouterFilter) ([]ds.ProviderRouter, error)
 	GetFeedProviderRouter(id *uint, next bool) (ds.ProviderRouter, error)
 	GetDraftProviderRouter(userID uint) (ds.ProviderRouter, error)
@@ -20,6 +21,13 @@ type ProviderRouterRepository interface {
 	DeleteProviderRouter(userID, id uint) (ds.ProviderRouter, error)
 	SetProviderRouterLike(userID, id uint, like bool) (int64, error)
 	MediaURL(key, fallback string) string
+}
+
+// TokenBlacklist — хранилище отозванных JWT (Redis). После выхода токен
+// попадает сюда и до конца срока действия не принимается.
+type TokenBlacklist interface {
+	WriteJWTToBlacklist(ctx context.Context, token, email string, ttl time.Duration) error
+	IsJWTBlacklisted(ctx context.Context, token string) (bool, error)
 }
 
 // ProviderRouterUserRepository — интерфейс домена пользователей (/api/provider_router_users).
@@ -31,4 +39,5 @@ type ProviderRouterUserRepository interface {
 var (
 	_ ProviderRouterRepository     = (*repository.Repository)(nil)
 	_ ProviderRouterUserRepository = (*repository.Repository)(nil)
+	_ TokenBlacklist               = (*redis.Client)(nil)
 )

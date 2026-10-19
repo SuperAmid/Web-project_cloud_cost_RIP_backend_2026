@@ -11,6 +11,9 @@ import (
 	"provider_routers/internal/ds"
 )
 
+// demoPasswordHash — bcrypt-хеш пароля password123 у пользователей из начальных данных.
+const demoPasswordHash = "$2a$10$qu9d1jJJ.Fg/2hczwKxGaexugeI7qLrKAZlJRyo.vtbrCwvEUHgva"
+
 // Ошибки бизнес-логики; handler переводит их в HTTP-коды.
 var (
 	ErrNotFound  = errors.New("not found") // 404
@@ -47,9 +50,9 @@ func (r *Repository) MigrateAndSeed(dir string) error {
 	if err := r.db.Model(&ds.ProviderRouter{}).Count(&count).Error; err != nil || count > 0 {
 		return err
 	}
-	student := ds.ProviderRouterUser{Email: fixedProviderRouterUserEmail, DisplayName: "Студент РИП"}
-	operator := ds.ProviderRouterUser{Email: "operator@provider-routers.local", DisplayName: "Оператор сети"}
-	viewer := ds.ProviderRouterUser{Email: "viewer@provider-routers.local", DisplayName: "Наблюдатель"}
+	student := ds.ProviderRouterUser{Email: "student@provider-routers.local", DisplayName: "Студент РИП", PasswordHash: demoPasswordHash}
+	operator := ds.ProviderRouterUser{Email: "operator@provider-routers.local", DisplayName: "Оператор сети", PasswordHash: demoPasswordHash}
+	viewer := ds.ProviderRouterUser{Email: "viewer@provider-routers.local", DisplayName: "Наблюдатель", PasswordHash: demoPasswordHash}
 	if err := r.db.Create(&[]*ds.ProviderRouterUser{&student, &operator, &viewer}).Error; err != nil {
 		return err
 	}

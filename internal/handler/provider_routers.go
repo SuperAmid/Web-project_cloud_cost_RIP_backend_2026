@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
@@ -13,17 +12,6 @@ import (
 	"provider_routers/internal/repository"
 	"provider_routers/internal/serializer"
 )
-
-// currentUserID — id создателя из функции-singleton (авторизация появится в ЛР4).
-func (h *Handler) currentUserID(w http.ResponseWriter) (uint, bool) {
-	user, err := h.repo.CurrentProviderRouterUser()
-	if err != nil {
-		log.Printf("current user: %v", err)
-		writeError(w, http.StatusInternalServerError, "текущий пользователь не найден в БД")
-		return 0, false
-	}
-	return user.ID, true
-}
 
 func deref[T any](value *T) T {
 	var zero T
@@ -60,11 +48,19 @@ func (h *Handler) toDraft(item ds.ProviderRouter) serializer.ProviderRouterDraft
 }
 
 // GetProviderRouters — GET /api/provider_routers?min_bandwidth_mbps=&max_cost_rub=
+//
+//	@Summary		Список маршрутизаторов
+//	@Description	Только опубликованные, фильтры выполняются в БД. is_own = 1, если создатель — текущий пользователь (для гостя 0). Доступно без авторизации.
+//	@Tags			provider_routers
+//	@Produce		json
+//	@Param			min_bandwidth_mbps	query		int	false	"Минимальная пропускная способность, Мбит/с"
+//	@Param			max_cost_rub		query		int	false	"Максимальная стоимость, ₽"
+//	@Success		200					{array}		serializer.ProviderRouterListItem
+//	@Failure		400					{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers [get]
 func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	var filter repository.ProviderRouterFilter
 	var err error
 	if filter.MinBandwidthMbps, err = optionalNonNegativeInt(r, "min_bandwidth_mbps"); err != nil {
@@ -99,11 +95,20 @@ func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetProviderRouterFeed — GET /api/provider_routers/feed[?id=102[&next=true]]
+//
+//	@Summary		Лента: одна карточка
+//	@Description	Без id — первая опубликованная, с id — эта, с id и next=true — следующая (после последней — первая). is_liked = 1, если текущий пользователь лайкнул (для гостя 0). Доступно без авторизации.
+//	@Tags			provider_routers
+//	@Produce		json
+//	@Param			id		query		int		false	"Id маршрутизатора"
+//	@Param			next	query		bool	false	"Следующая после id"
+//	@Success		200		{object}	serializer.ProviderRouterFeedItem
+//	@Failure		400		{object}	serializer.ErrorResponse
+//	@Failure		404		{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers/feed [get]
 func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	var id *uint
 	if raw := strings.TrimSpace(r.URL.Query().Get("id")); raw != "" {
 		parsed, err := strconv.ParseUint(raw, 10, 32)
@@ -148,11 +153,18 @@ func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) 
 }
 
 // GetProviderRouterDraft — GET /api/provider_routers/draft (id не указывается)
+//
+//	@Summary		Черновик текущего пользователя
+//	@Description	Не более одного черновика у пользователя, id не указывается.
+//	@Tags			provider_routers
+//	@Produce		json
+//	@Success		200	{object}	serializer.ProviderRouterDraft
+//	@Failure		401	{object}	serializer.ErrorResponse
+//	@Failure		404	{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers/draft [get]
 func (h *Handler) GetProviderRouterDraft(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	draft, err := h.repo.GetDraftProviderRouter(userID)
 	if err != nil {
 		writeRepositoryError(w, err, map[error]string{repository.ErrNotFound: "у пользователя нет черновика"})
@@ -162,11 +174,23 @@ func (h *Handler) GetProviderRouterDraft(w http.ResponseWriter, r *http.Request)
 }
 
 // CreateProviderRouter — POST /api/provider_routers (multipart/form-data: name, image, video)
+//
+//	@Summary		Создание черновика с фото и видео
+//	@Description	Файлы сохраняются в MinIO под латинскими именами, создатель — пользователь из токена.
+//	@Tags			provider_routers
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Param			name	formData	string	true	"Название"
+//	@Param			image	formData	file	true	"Фото: jpg, jpeg, png, webp, svg до 10 МБ"
+//	@Param			video	formData	file	true	"Видео: mp4, webm, mov до 50 МБ"
+//	@Success		201		{object}	serializer.ProviderRouterDraft
+//	@Failure		400		{object}	serializer.ErrorResponse
+//	@Failure		401		{object}	serializer.ErrorResponse
+//	@Failure		409		{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers [post]
 func (h *Handler) CreateProviderRouter(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	r.Body = http.MaxBytesReader(w, r.Body, 70<<20)
 	if err := r.ParseMultipartForm(8 << 20); err != nil {
 		writeError(w, http.StatusBadRequest, "ожидается multipart/form-data с полями name, image, video (не больше 70 МБ)")
@@ -226,11 +250,24 @@ func singleFile(form *multipart.Form, field string) (*multipart.FileHeader, erro
 }
 
 // PublishProviderRouter — PUT /api/provider_routers/{id}/publish
+//
+//	@Summary		Публикация своего черновика
+//	@Description	draft → published, published_at ставит сервер. В той же транзакции заполняются описание и два поля по теме.
+//	@Tags			provider_routers
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int										true	"Id черновика"
+//	@Param			body	body		serializer.ProviderRouterPublishRequest	true	"Описание и поля по теме"
+//	@Success		200		{object}	serializer.ProviderRouterDraft
+//	@Failure		400		{object}	serializer.ErrorResponse
+//	@Failure		401		{object}	serializer.ErrorResponse
+//	@Failure		403		{object}	serializer.ErrorResponse
+//	@Failure		404		{object}	serializer.ErrorResponse
+//	@Failure		409		{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers/{id}/publish [put]
 func (h *Handler) PublishProviderRouter(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	id, err := pathID(r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
@@ -278,11 +315,20 @@ func validatePublish(request serializer.ProviderRouterPublishRequest) (repositor
 }
 
 // DeleteProviderRouter — DELETE /api/provider_routers/{id} (только soft delete своей записи)
+//
+//	@Summary		Логическое удаление своей записи
+//	@Description	status = deleted, запись больше не отдаётся клиенту.
+//	@Tags			provider_routers
+//	@Produce		json
+//	@Param			id	path		int	true	"Id маршрутизатора"
+//	@Success		200	{object}	serializer.ProviderRouterDraft
+//	@Failure		401	{object}	serializer.ErrorResponse
+//	@Failure		403	{object}	serializer.ErrorResponse
+//	@Failure		404	{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers/{id} [delete]
 func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	id, err := pathID(r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
@@ -300,11 +346,22 @@ func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
 }
 
 // LikeProviderRouter — POST /api/provider_routers/{id}/like, тело {"like": 1} или {"like": 0}
+//
+//	@Summary		Лайк от текущего пользователя
+//	@Description	like = 1 ставит лайк, 0 снимает.
+//	@Tags			provider_routers
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int										true	"Id маршрутизатора"
+//	@Param			body	body		serializer.ProviderRouterLikeRequest	true	"0 или 1"
+//	@Success		200		{object}	serializer.ProviderRouterLikeResponse
+//	@Failure		400		{object}	serializer.ErrorResponse
+//	@Failure		401		{object}	serializer.ErrorResponse
+//	@Failure		404		{object}	serializer.ErrorResponse
+//	@Security		BearerAuth
+//	@Router			/provider_routers/{id}/like [post]
 func (h *Handler) LikeProviderRouter(w http.ResponseWriter, r *http.Request) {
-	userID, ok := h.currentUserID(w)
-	if !ok {
-		return
-	}
+	userID := currentUserID(r)
 	id, err := pathID(r)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
