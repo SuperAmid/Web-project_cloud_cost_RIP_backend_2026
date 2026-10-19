@@ -11,7 +11,8 @@
 - Go;
 - серверная HTML-шаблонизация (SSR);
 - PostgreSQL, Adminer и MinIO в Docker — с лабораторной работы №2;
-- REST API (JSON) с ORM GORM, проверка через Postman/Insomnia — с лабораторной работы №3.
+- REST API (JSON) с ORM GORM, проверка через Postman/Insomnia — с лабораторной работы №3;
+- JWT, Redis и Swagger — с лабораторной работы №4.
 
 ## Лабораторные работы
 
@@ -20,6 +21,6 @@
 | [`ssr-design`](../../tree/ssr-design) | ЛР1: дизайн, SSR, in-memory коллекция маршрутизаторов и MinIO. |
 | [`database-orm`](../../tree/database-orm) | ЛР2: PostgreSQL, Adminer, ORM, миграции и логическое удаление. |
 | [`web-service`](../../tree/web-service) | ЛР3: веб-сервис REST API — 10 методов, загрузка фото и видео в MinIO, лайки, регистрация. |
-| `auth-sessions` | Планируемая ЛР4: аутентификация и сессии. |
+| [`auth-swagger`](../../tree/auth-swagger) | ЛР4: вход по JWT, blacklist токенов в Redis, гостевой доступ только на чтение, Swagger. |
 
 Гаджиев Амид Гахраманович, студент ИУ5Ц-74Б.
