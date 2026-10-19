@@ -3,7 +3,7 @@ package repository
 // Интеграционные тесты на реальной PostgreSQL. Запуск:
 //   docker compose up -d postgres
 //   TEST_DATABASE_URL="postgres://provider_routers_user:provider_routers_password@localhost:5433/provider_routers_test?sslmode=disable" go test ./internal/repository/
-// (или make test-db). Без TEST_DATABASE_URL тесты пропускаются.
+// Без TEST_DATABASE_URL тесты пропускаются.
 
 import (
 	"context"

@@ -31,11 +31,17 @@ API: `http://localhost:8080/api`. PostgreSQL: `localhost:5433`, БД `provider_r
 | Команда | Что проверяет | Нужен Docker |
 | --- | --- | --- |
 | `go test ./...` | разбор и проверка запросов (`internal/handler`), все 10 маршрутов и коды ответов на подменном репозитории (`internal/api`), расширения и размеры файлов, латинские имена объектов (`internal/repository`) | нет |
-| `make test-db` | переходы статусов на реальной PostgreSQL: `draft → published`, `published → deleted`, повторная публикация и возврат из `deleted` — ошибка, второй черновик — `409`, чужая запись — `403`, фильтр в БД, `next` после последней | да |
-| `make smoke` | полный сценарий против поднятого стека: MinIO жив и бакет заполнен → создание с загрузкой фото и видео в MinIO → публикация → лайк → лента → удаление → регистрация. Падает, если стек не поднялся | да + `go run .` |
-| `make check` | `docker manifest inspect` для каждого образа из compose: ловит приватный или удалённый образ до `docker compose up` | да |
+| `TEST_DATABASE_URL=… go test ./internal/repository/` | переходы статусов на реальной PostgreSQL: `draft → published`, `published → deleted`, повторная публикация и возврат из `deleted` — ошибка, второй черновик — `409`, чужая запись — `403`, фильтр в БД, `next` после последней | да |
 
-На Windows `make` и `bash` — из Git Bash или WSL.
+Интеграционным тестам нужна отдельная база в PostgreSQL из `docker compose`:
+
+```powershell
+docker compose exec postgres psql -U provider_routers_user -d provider_routers -c "CREATE DATABASE provider_routers_test"
+$env:TEST_DATABASE_URL = "postgres://provider_routers_user:provider_routers_password@localhost:5433/provider_routers_test?sslmode=disable"
+go test -count=1 ./internal/repository/
+```
+
+Без `TEST_DATABASE_URL` эти тесты пропускаются.
 
 ## Окружение
 
@@ -78,7 +84,6 @@ curl -sSI https://quay.io/v2/minio/minio/manifests/latest | head -1   # 401 = д
 | `internal/handler` | HTTP-обработчики: разбор запроса, проверка полей, коды ответа. Зависят от интерфейсов `ProviderRouterRepository` и `ProviderRouterUserRepository` (`interfaces.go`), а не от конкретного репозитория |
 | `internal/api` | маршрутизация URL → обработчик |
 | `migrations/` | версионированные SQL-миграции |
-| `scripts/smoke.sh`, `Makefile` | smoke-тест стека и цели `check`, `test`, `test-db`, `smoke` |
 | `docs/` | коллекция Postman, диаграмма классов и ER (StarUML + PNG), макеты, пример `daemon.json` |
 
 **Интерфейсы доменов.** Домен `/api/provider_routers` → интерфейс `ProviderRouterRepository`, домен `/api/provider_router_users` → `ProviderRouterUserRepository`, хранилище файлов → `MediaStorage`. Реализации — `*repository.Repository` и `*repository.Media`; соответствие проверяется при компиляции (`var _ Interface = (*Impl)(nil)`), в тестах подставляется подменный репозиторий.
