@@ -238,7 +238,7 @@ docker compose exec redis redis-cli -a provider_routers_redis_password GET "prov
 docker compose exec redis redis-cli -a provider_routers_redis_password TTL "provider_routers:jwt:blacklist:<токен>"
 ```
 
-**StarUML.** Открыть `docs/provider_routers.mdj` → «Диаграмма последовательности: бизнес-процесс создателя (ЛР4)» → выделить сообщение. В свойстве `signature` выбрана операция домена из диаграммы классов, в `arguments` — ключевые входные данные (у ответов — выходные).
+**StarUML.** Открыть `docs/provider_routers.mdj` → «Диаграмма последовательности: бизнес-процесс создателя» → выделить сообщение. В свойстве `signature` выбрана операция домена из диаграммы классов, в `arguments` — ключевые входные данные (у ответов — выходные).
 
 **Изменения в БД** (Adminer → SQL-запрос):
 
