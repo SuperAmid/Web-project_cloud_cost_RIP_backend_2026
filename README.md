@@ -4,6 +4,8 @@
 
 Ветки: `ssr-design` — ЛР1, `database-orm` — ЛР2, `web-service` — ЛР3, `auth-swagger` — ЛР4.
 
+Фронтенд (React, ЛР5): [Web-project_cloud_cost_RIP_frontend_2026](https://github.com/SuperAmid/Web-project_cloud_cost_RIP_frontend_2026).
+
 ## Запуск
 
 ```powershell
