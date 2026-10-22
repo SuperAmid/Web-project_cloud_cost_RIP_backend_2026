@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "provider_routers — ЛР4",
-    "description": "10 методов веб-сервиса с авторизацией по JWT. Заголовок Authorization: Bearer {{token}} прописан явно во вкладке Headers каждого запроса; токен сохраняет запрос 09. Запрос гостя — снять галочку у заголовка Authorization.",
+    "description": "10 методов веб-сервиса с авторизацией по JWT. Заголовок Authorization: Bearer {{token}} прописан явно во вкладке Headers каждого запроса; токен сохраняет запрос 09. Домен маршрутизаторов /api/provider_routers — запросы 01–07, домен пользователей /api/provider_router_users — 08–10, домен указан в описании каждого запроса. Запрос гостя — снять галочку у заголовка Authorization.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -9,466 +9,456 @@
   },
   "item": [
     {
-      "name": "Домен маршрутизаторов /api/provider_routers",
-      "item": [
-        {
-          "name": "01 Список с фильтром",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers?min_bandwidth_mbps=10000",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers"
-              ],
-              "query": [
-                {
-                  "key": "min_bandwidth_mbps",
-                  "value": "10000"
-                },
-                {
-                  "key": "max_cost_rub",
-                  "value": "500000",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Только опубликованные, фильтры выполняются в БД. is_own = 1, если создатель — текущий пользователь.",
-            "auth": {
-              "type": "noauth"
-            }
+      "name": "01 Список с фильтром",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
           }
-        },
-        {
-          "name": "02 Лента (без id / по id и next=true)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers/feed",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers",
-                "feed"
-              ],
-              "query": [
-                {
-                  "key": "id",
-                  "value": "{{feed_id}}",
-                  "disabled": true
-                },
-                {
-                  "key": "next",
-                  "value": "true",
-                  "disabled": true
-                }
-              ]
-            },
-            "description": "Один метод. Без параметров — первая карточка ленты. Включите галочки id и next — следующая карточка после id. is_liked = 1, если текущий пользователь лайкнул.",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers?min_bandwidth_mbps=10000",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers"
+          ],
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const byId = pm.request.url.query.filter(p => !p.disabled && p.key === 'id').length > 0;",
-                  "if (pm.response.code === 200 && !byId) {",
-                  "  pm.collectionVariables.set('feed_id', pm.response.json().id);",
-                  "}"
-                ]
-              }
+              "key": "min_bandwidth_mbps",
+              "value": "10000"
+            },
+            {
+              "key": "max_cost_rub",
+              "value": "500000",
+              "disabled": true
             }
           ]
         },
-        {
-          "name": "03 Черновик (без id)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers/draft",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers",
-                "draft"
-              ]
-            },
-            "description": "Черновик текущего пользователя, id не указывается.",
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nТолько опубликованные, фильтры выполняются в БД. is_own = 1, если создатель — текущий пользователь.",
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "02 Лента (без id / по id и next=true)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/feed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "feed"
+          ],
+          "query": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.response.code === 201 || pm.response.code === 200) {",
-                  "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
-                  "}"
-                ]
-              }
+              "key": "id",
+              "value": "{{feed_id}}",
+              "disabled": true
+            },
+            {
+              "key": "next",
+              "value": "true",
+              "disabled": true
             }
           ]
         },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nОдин метод. Без параметров — первая карточка ленты. Включите галочки id и next — следующая карточка после id. is_liked = 1, если текущий пользователь лайкнул.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
         {
-          "name": "04 Добавление с фото и видео",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers"
-              ]
-            },
-            "description": "multipart/form-data: name, файлы image и video. Создаёт черновик, файлы сохраняются в MinIO под латинскими именами.",
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "name",
-                  "value": "Ozerki Residence Gateway",
-                  "type": "text"
-                },
-                {
-                  "key": "image",
-                  "type": "file",
-                  "src": [],
-                  "description": ".jpg .jpeg .png .webp .svg до 10 МБ"
-                },
-                {
-                  "key": "video",
-                  "type": "file",
-                  "src": [],
-                  "description": ".mp4 .webm .mov до 50 МБ"
-                }
-              ]
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.response.code === 201 || pm.response.code === 200) {",
-                  "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "05 Публикация",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/publish",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers",
-                "{{provider_router_id}}",
-                "publish"
-              ]
-            },
-            "description": "draft → published, published_at ставит сервер. Заполняются description, bandwidth_mbps, cost_rub.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "06 Удаление (soft delete)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers",
-                "{{provider_router_id}}"
-              ]
-            },
-            "description": "Логическое удаление своей записи: status = deleted.",
-            "auth": {
-              "type": "noauth"
-            }
-          }
-        },
-        {
-          "name": "07 Лайк (1 — поставить, 0 — снять)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/like",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_routers",
-                "{{provider_router_id}}",
-                "like"
-              ]
-            },
-            "description": "Лайк от текущего пользователя.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"like\": 1\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const byId = pm.request.url.query.filter(p => !p.disabled && p.key === 'id').length > 0;",
+              "if (pm.response.code === 200 && !byId) {",
+              "  pm.collectionVariables.set('feed_id', pm.response.json().id);",
+              "}"
+            ]
           }
         }
       ]
     },
     {
-      "name": "Домен пользователей /api/provider_router_users",
-      "item": [
-        {
-          "name": "08 Регистрация",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_router_users/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_router_users",
-                "register"
-              ]
-            },
-            "description": "email, display_name, password. Пароль хранится как bcrypt-хеш.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"amid{{$timestamp}}@provider-routers.local\",\n  \"display_name\": \"Амид Гаджиев\",\n  \"password\": \"secret123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.response.code === 201) {",
-                  "  pm.collectionVariables.set('user_email', pm.response.json().email);",
-                  "}"
-                ]
-              }
-            }
+      "name": "03 Черновик (без id)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/draft",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "draft"
           ]
         },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nЧерновик текущего пользователя, id не указывается.",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
         {
-          "name": "09 Аутентификация (выдаёт JWT)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_router_users/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_router_users",
-                "login"
-              ]
-            },
-            "description": "Пароль пользователей из начальных данных — password123. Скрипт сохраняет access_token в переменную token.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"student@provider-routers.local\",\n  \"password\": \"password123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "auth": {
-              "type": "noauth"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const body = pm.response.json();",
-                  "if (body.access_token) { pm.collectionVariables.set('token', body.access_token); }"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "10 Деавторизация (токен в blacklist Redis)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text",
-                "description": "Снимите галочку, чтобы выполнить запрос как гость"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/provider_router_users/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "provider_router_users",
-                "logout"
-              ]
-            },
-            "description": "Токен попадает в Redis до конца срока действия; после этого методы создателя отвечают 401.",
-            "auth": {
-              "type": "noauth"
-            }
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
+              "}"
+            ]
           }
         }
       ]
+    },
+    {
+      "name": "04 Добавление с фото и видео",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers"
+          ]
+        },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nmultipart/form-data: name, файлы image и video. Создаёт черновик, файлы сохраняются в MinIO под латинскими именами.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "Ozerki Residence Gateway",
+              "type": "text"
+            },
+            {
+              "key": "image",
+              "type": "file",
+              "src": [],
+              "description": ".jpg .jpeg .png .webp .svg до 10 МБ"
+            },
+            {
+              "key": "video",
+              "type": "file",
+              "src": [],
+              "description": ".mp4 .webm .mov до 50 МБ"
+            }
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201 || pm.response.code === 200) {",
+              "  pm.collectionVariables.set('provider_router_id', pm.response.json().id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Публикация",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/publish",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "publish"
+          ]
+        },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\ndraft → published, published_at ставит сервер. Заполняются description, bandwidth_mbps, cost_rub.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Конечный маршрутизатор ЖК «Озерки» на 240 квартир.\",\n  \"bandwidth_mbps\": 2500,\n  \"cost_rub\": 84000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "06 Удаление (soft delete)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}"
+          ]
+        },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nЛогическое удаление своей записи: status = deleted.",
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "07 Лайк (1 — поставить, 0 — снять)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_routers/{{provider_router_id}}/like",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_routers",
+            "{{provider_router_id}}",
+            "like"
+          ]
+        },
+        "description": "Домен маршрутизаторов (provider_routers), URL /api/provider_routers.\n\nЛайк от текущего пользователя.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"like\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "08 Регистрация",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "register"
+          ]
+        },
+        "description": "Домен пользователей (provider_router_users), URL /api/provider_router_users.\n\nemail, display_name, password. Пароль хранится как bcrypt-хеш.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"amid{{$timestamp}}@provider-routers.local\",\n  \"display_name\": \"Амид Гаджиев\",\n  \"password\": \"secret123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('user_email', pm.response.json().email);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Аутентификация (выдаёт JWT)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "login"
+          ]
+        },
+        "description": "Домен пользователей (provider_router_users), URL /api/provider_router_users.\n\nПароль пользователей из начальных данных — password123. Скрипт сохраняет access_token в переменную token.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@provider-routers.local\",\n  \"password\": \"password123\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.access_token) { pm.collectionVariables.set('token', body.access_token); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Деавторизация (токен в blacklist Redis)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text",
+            "description": "Снимите галочку, чтобы выполнить запрос как гость"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/provider_router_users/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "provider_router_users",
+            "logout"
+          ]
+        },
+        "description": "Домен пользователей (provider_router_users), URL /api/provider_router_users.\n\nТокен попадает в Redis до конца срока действия; после этого методы создателя отвечают 401.",
+        "auth": {
+          "type": "noauth"
+        }
+      }
     }
   ],
   "variable": [
