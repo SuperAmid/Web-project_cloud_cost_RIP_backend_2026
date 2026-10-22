@@ -27,7 +27,7 @@ API: `http://localhost:8080/api`. PostgreSQL: `localhost:5433`, БД `provider_r
 
 Если таблицы уже были созданы старой версией, `001_init` считается выполненной, остальные применяются поверх. Пустая БД заполняется начальными данными (то же — в `db/seed.sql` для ручного импорта).
 
-Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia). Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности бизнес-процесса создателя: вход, список, добавление, черновик, публикация, лента, лайк, выход (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
+Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia) — 10 запросов по числу методов, в каждом явно прописан заголовок `Authorization: Bearer {{token}}`. Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности бизнес-процесса создателя: вход, список, добавление, черновик, публикация, лента, лайк, выход (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
 
 ## Тесты
 
@@ -219,14 +219,14 @@ swag init -g main.go -o docs/swagger --outputTypes json,yaml --parseInternal
 1. Открыть `http://localhost:8080/swagger/` → `POST /provider_router_users/login` → Try it out → `{"email": "student@provider-routers.local", "password": "password123"}` → Execute. В ответе `access_token`.
 2. **Authorize** → `Bearer <access_token>` → `GET /provider_routers` — список; в запросе виден заголовок `Authorization`, у своих записей `is_own: 1`.
 
-**Postman** (`docs/postman/provider_routers_lab4.postman_collection.json`, у коллекции авторизация `Bearer {{token}}`).
+**Postman** (`docs/postman/provider_routers_lab4.postman_collection.json`) — те же 10 методов, что в README, с теми же номерами. У коллекции авторизация выключена (No Auth): заголовок `Authorization: Bearer {{token}}` прописан явно во вкладке **Headers** каждого запроса и отмечен галочкой. Чтобы выполнить запрос как гость, снимите галочку у этого заголовка.
 
-3. «01 Вход: получить JWT» — скрипт сохраняет токен в переменную `token`; дальше он подставляется во все запросы коллекции (вкладка Authorization → Inherit auth from parent).
-4. «02 Список без токена (гость)» — `200`, у всех `is_own: 0`.
-5. «03 Список с токеном» — `200`, `is_own` считается по пользователю из токена.
-6. «04 Добавление с фото и видео» (выбрать файлы `assets/provider-media/provider_routers/core.svg` и `assets/provider-media/videos/core-loop.mp4`) → «05 Черновик» → «06 Публикация без токена» — `401` у гостя.
-7. «07 Публикация с токеном» — `200`, `status: published`.
-8. Остальные запросы: лента, лайк, удаление, регистрация, вход новым пользователем, «14 Выход» — токен в blacklist, «15 Публикация после выхода» — `401`.
+3. «09 Аутентификация» — скрипт сохраняет токен в переменную `token`, его подставляет заголовок `Authorization` всех запросов.
+4. «01 Список с фильтром», галочка у `Authorization` снята (гость) — `200`, у всех `is_own: 0`.
+5. «01 Список с фильтром», галочка у `Authorization` стоит — `200`, `is_own` считается по пользователю из токена.
+6. «04 Добавление с фото и видео» (выбрать файлы `assets/provider-media/provider_routers/core.svg` и `assets/provider-media/videos/core-loop.mp4`) → «03 Черновик» → «05 Публикация» без галочки у `Authorization` — `401` у гостя.
+7. «05 Публикация» с галочкой у `Authorization` — `200`, `status: published`.
+8. Остальные запросы: «02 Лента» (без параметров и с галочками `id`, `next`), «07 Лайк», «06 Удаление», «08 Регистрация», «10 Деавторизация» — токен в blacklist; после неё «05 Публикация» с тем же токеном — `401`.
 
 Скрипты сами сохраняют переменные: `token` (вход), `provider_router_id` (создание/черновик), `feed_id` (лента без id), `user_email` (регистрация; email уникален за счёт `{{$timestamp}}`). При повторном показе сначала удалить или опубликовать свой черновик — иначе создание вернёт `409`.
 
