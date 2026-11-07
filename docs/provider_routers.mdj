@@ -137,8 +137,8 @@
 							"containerExtending": true,
 							"left": 20,
 							"top": 20,
-							"width": 270,
-							"height": 98,
+							"width": 300,
+							"height": 112,
 							"nameLabel": {
 								"$ref": "v_0026"
 							},
@@ -373,10 +373,10 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"containerExtending": true,
-							"left": 360,
+							"left": 420,
 							"top": 20,
-							"width": 330,
-							"height": 196,
+							"width": 310,
+							"height": 234,
 							"nameLabel": {
 								"$ref": "v_0029"
 							},
@@ -484,9 +484,9 @@
 							"containerChangeable": true,
 							"containerExtending": true,
 							"left": 20,
-							"top": 160,
-							"width": 270,
-							"height": 84,
+							"top": 182,
+							"width": 300,
+							"height": 94,
 							"nameLabel": {
 								"$ref": "v_0032"
 							},
@@ -584,7 +584,7 @@
 								"$ref": "v_0025"
 							},
 							"lineStyle": 1,
-							"points": "291:87;359:96",
+							"points": "320:76;420:76",
 							"nameLabel": {
 								"$ref": "v_0038"
 							},
@@ -685,7 +685,7 @@
 								"$ref": "v_0025"
 							},
 							"lineStyle": 1,
-							"points": "155:119;155:159",
+							"points": "170:132;170:182",
 							"nameLabel": {
 								"$ref": "v_0045"
 							},
@@ -786,7 +786,7 @@
 								"$ref": "v_0028"
 							},
 							"lineStyle": 1,
-							"points": "359:156;291:171",
+							"points": "420:229;320:229",
 							"nameLabel": {
 								"$ref": "v_0052"
 							},
@@ -1406,9 +1406,9 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 25,
-							"top": 55,
-							"width": 155,
-							"height": 50,
+							"top": 58,
+							"width": 105,
+							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouYpkXNFsI="
 							},
@@ -1584,10 +1584,10 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 200,
-							"top": 55,
-							"width": 155,
-							"height": 50,
+							"left": 142,
+							"top": 58,
+							"width": 105,
+							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouYvUX23aY="
 							},
@@ -1763,10 +1763,10 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 375,
-							"top": 55,
-							"width": 155,
-							"height": 50,
+							"left": 259,
+							"top": 58,
+							"width": 126,
+							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouY20YfcZ4="
 							},
@@ -1942,10 +1942,10 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 565,
-							"top": 55,
+							"left": 495,
+							"top": 58,
 							"width": 170,
-							"height": 50,
+							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouY8UZI3Os="
 							},
@@ -2082,7 +2082,135 @@
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"width": 10,
-									"height": 10
+									"height": 10,
+									"subViews": [
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZWUcFX+E=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZUkcCT7k="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 320,
+											"width": 321,
+											"height": 13,
+											"text": "+GET /api/provider_routers()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZcUcLtgA=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZa0cIHGg="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 335,
+											"width": 321,
+											"height": 13,
+											"text": "+GET /api/provider_routers/feed()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZiUcR7Sw=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZg0cOa8c="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 350,
+											"width": 321,
+											"height": 13,
+											"text": "+GET /api/provider_routers/draft()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZoUcXCBQ=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZnEcU2Ao="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 365,
+											"width": 321,
+											"height": 13,
+											"text": "+POST /api/provider_routers()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZvEcd3UQ=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZs0cax/c="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 380,
+											"width": 321,
+											"height": 13,
+											"text": "+PUT /api/provider_routers/{id}/publish()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZ1EcjZiI=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZ0Ecgm18="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 395,
+											"width": 321,
+											"height": 13,
+											"text": "+DELETE /api/provider_routers/{id}()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouZ7Ucpigc=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZB0Z3wzI="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouZ6Ecmm1k="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 30,
+											"top": 410,
+											"width": 321,
+											"height": 13,
+											"text": "+POST /api/provider_routers/{id}/like()",
+											"horizontalAlignment": 0
+										}
+									]
 								},
 								{
 									"_type": "UMLReceptionCompartmentView",
@@ -2118,16 +2246,16 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 265,
+							"left": 25,
 							"top": 160,
-							"width": 151.78125,
-							"height": 49,
-							"stereotypeDisplay": "icon",
+							"width": 360,
+							"height": 162,
+							"stereotypeDisplay": "label",
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouZB0ZxVLA="
 							},
-							"suppressAttributes": true,
-							"suppressOperations": true,
+							"suppressAttributes": false,
+							"suppressOperations": false,
 							"attributeCompartment": {
 								"$ref": "AAAAAAGhYouZB0Z2X+8="
 							},
@@ -2261,7 +2389,63 @@
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"width": 10,
-									"height": 10
+									"height": 10,
+									"subViews": [
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouaIkdYT3s=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZHkagtO8="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouaG0dVwIU="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 400,
+											"top": 320,
+											"width": 331,
+											"height": 13,
+											"text": "+POST /api/provider_router_users/register()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouaPEdeS9k=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZHkagtO8="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouaNkdbQhc="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 400,
+											"top": 335,
+											"width": 331,
+											"height": 13,
+											"text": "+POST /api/provider_router_users/login()",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "AAAAAAGhYouaVkdkgBQ=",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZHkagtO8="
+											},
+											"model": {
+												"$ref": "AAAAAAGhYouaUUdhiGE="
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 400,
+											"top": 350,
+											"width": 331,
+											"height": 13,
+											"text": "+POST /api/provider_router_users/logout()",
+											"horizontalAlignment": 0
+										}
+									]
 								},
 								{
 									"_type": "UMLReceptionCompartmentView",
@@ -2297,16 +2481,16 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 615,
+							"left": 425,
 							"top": 160,
-							"width": 133.03662109375,
-							"height": 49,
-							"stereotypeDisplay": "icon",
+							"width": 310,
+							"height": 102,
+							"stereotypeDisplay": "label",
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouZHEaafZc="
 							},
-							"suppressAttributes": true,
-							"suppressOperations": true,
+							"suppressAttributes": false,
+							"suppressOperations": false,
 							"attributeCompartment": {
 								"$ref": "AAAAAAGhYouZHkafdsI="
 							},
@@ -2423,9 +2607,9 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 10,
-							"top": 235,
+							"top": 366,
 							"width": 740,
-							"height": 210,
+							"height": 235,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouZL0bDq38="
 							}
@@ -2534,7 +2718,24 @@
 									"left": 25,
 									"top": 305,
 									"width": 331,
-									"height": 10
+									"height": 10,
+									"subViews": [
+										{
+											"_type": "UMLAttributeView",
+											"_id": "UFJmaXgAABBTstPk",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0bhk1w="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAA9Qp9Mw"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "-repo: ProviderRouterRepository"
+										}
+									]
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -2545,140 +2746,119 @@
 									"model": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"subViews": [
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZWUcFX+E=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZUkcCT7k="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 320,
-											"width": 321,
-											"height": 13,
-											"text": "+GET /api/provider_routers()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZcUcLtgA=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZa0cIHGg="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 335,
-											"width": 321,
-											"height": 13,
-											"text": "+GET /api/provider_routers/feed()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZiUcR7Sw=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZg0cOa8c="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 350,
-											"width": 321,
-											"height": 13,
-											"text": "+GET /api/provider_routers/draft()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZoUcXCBQ=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZnEcU2Ao="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 365,
-											"width": 321,
-											"height": 13,
-											"text": "+POST /api/provider_routers()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZvEcd3UQ=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZs0cax/c="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 380,
-											"width": 321,
-											"height": 13,
-											"text": "+PUT /api/provider_routers/{id}/publish()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZ1EcjZiI=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZ0Ecgm18="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 395,
-											"width": 321,
-											"height": 13,
-											"text": "+DELETE /api/provider_routers/{id}()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouZ7Ucpigc=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouZP0biXRM="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouZ6Ecmm1k="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 30,
-											"top": 410,
-											"width": 321,
-											"height": 13,
-											"text": "+POST /api/provider_routers/{id}/like()",
-											"horizontalAlignment": 0
-										}
-									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"left": 25,
 									"top": 315,
 									"width": 331,
-									"height": 113
+									"height": 113,
+									"subViews": [
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAALYF1kL",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAH1ktZE"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+GetProviderRouters()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAARsqNM4",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAO7h/A1"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+GetProviderRouterFeed()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAAa6Jq1O",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAWPClC3"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+GetProviderRouterDraft()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAAhwTUpJ",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAeSB3iz"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+CreateProviderRouter()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAAqyhkiY",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAlM/Dcn"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+PublishProviderRouter()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAAxdjEbt",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAAs9+7tD"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+DeleteProviderRouter()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAAA6oGTqQ",
+											"_parent": {
+												"$ref": "AAAAAAGhYouZP0biXRM="
+											},
+											"model": {
+												"$ref": "UFJmaXgAAA3vVbbV"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+LikeProviderRouter()"
+										}
+									]
 								},
 								{
 									"_type": "UMLReceptionCompartmentView",
@@ -2718,9 +2898,9 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 25,
-							"top": 280,
-							"width": 330,
-							"height": 148,
+							"top": 424,
+							"width": 360,
+							"height": 161,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouZP0bcVVo="
 							},
@@ -2841,7 +3021,54 @@
 									"left": 395,
 									"top": 305,
 									"width": 341,
-									"height": 10
+									"height": 10,
+									"subViews": [
+										{
+											"_type": "UMLAttributeView",
+											"_id": "UFJmaXgAABgFH6Vs",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc055o="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABf+OrZJ"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "-users: ProviderRouterUserRepository"
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "UFJmaXgAABroOuUn",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc055o="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABkmcSnd"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "-tokens: auth.Manager"
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "UFJmaXgAAByywj+Y",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc055o="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABt/xGZx"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "-blacklist: TokenBlacklist"
+										}
+									]
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -2852,68 +3079,59 @@
 									"model": {
 										"$ref": "AAAAAAGhYouaAUcssAA="
 									},
-									"subViews": [
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouaIkdYT3s=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouaAUc1Hm4="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouaG0dVwIU="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 400,
-											"top": 320,
-											"width": 331,
-											"height": 13,
-											"text": "+POST /api/provider_router_users/register()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouaPEdeS9k=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouaAUc1Hm4="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouaNkdbQhc="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 400,
-											"top": 335,
-											"width": 331,
-											"height": 13,
-											"text": "+POST /api/provider_router_users/login()",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLOperationView",
-											"_id": "AAAAAAGhYouaVkdkgBQ=",
-											"_parent": {
-												"$ref": "AAAAAAGhYouaAUc1Hm4="
-											},
-											"model": {
-												"$ref": "AAAAAAGhYouaUUdhiGE="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 400,
-											"top": 350,
-											"width": 331,
-											"height": 13,
-											"text": "+POST /api/provider_router_users/logout()",
-											"horizontalAlignment": 0
-										}
-									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"left": 395,
 									"top": 315,
 									"width": 341,
-									"height": 53
+									"height": 53,
+									"subViews": [
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAABIWtzTi",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc1Hm4="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABEs140w"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+RegisterProviderRouterUser()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAABQ89Las",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc1Hm4="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABNX3aNG"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+LoginProviderRouterUser()"
+										},
+										{
+											"_type": "UMLOperationView",
+											"_id": "UFJmaXgAABZYqBKJ",
+											"_parent": {
+												"$ref": "AAAAAAGhYouaAUc1Hm4="
+											},
+											"model": {
+												"$ref": "UFJmaXgAABX6vl4T"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"height": 13,
+											"horizontalAlignment": 0,
+											"text": "+LogoutProviderRouterUser()"
+										}
+									]
 								},
 								{
 									"_type": "UMLReceptionCompartmentView",
@@ -2952,10 +3170,10 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 395,
-							"top": 280,
-							"width": 340,
-							"height": 95,
+							"left": 425,
+							"top": 424,
+							"width": 310,
+							"height": 131,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouaAUcv9wg="
 							},
@@ -3078,9 +3296,9 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 10,
-							"top": 475,
+							"top": 631,
 							"width": 740,
-							"height": 100,
+							"height": 106,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouabkdqx+Q="
 							}
@@ -3245,8 +3463,8 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 30,
-							"top": 520,
-							"width": 180,
+							"top": 681,
+							"width": 150,
 							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouah0eD+ak="
@@ -3423,9 +3641,9 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 290,
-							"top": 520,
-							"width": 180,
+							"left": 245,
+							"top": 681,
+							"width": 165,
 							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYouao0esdNA="
@@ -3602,8 +3820,8 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 550,
-							"top": 520,
+							"left": 490,
+							"top": 681,
 							"width": 180,
 							"height": 45,
 							"nameCompartment": {
@@ -3728,9 +3946,9 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 10,
-							"top": 605,
+							"top": 767,
 							"width": 740,
-							"height": 160,
+							"height": 154,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYoua4Ef+1Po="
 							}
@@ -3895,8 +4113,8 @@
 							"parentStyle": false,
 							"containerChangeable": true,
 							"left": 30,
-							"top": 650,
-							"width": 180,
+							"top": 821,
+							"width": 150,
 							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYoua/UgXYCk="
@@ -4073,9 +4291,9 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 290,
-							"top": 710,
-							"width": 180,
+							"left": 245,
+							"top": 821,
+							"width": 165,
 							"height": 45,
 							"nameCompartment": {
 								"$ref": "AAAAAAGhYoubG0hACIA="
@@ -4252,8 +4470,8 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 550,
-							"top": 650,
+							"left": 490,
+							"top": 821,
 							"width": 180,
 							"height": 45,
 							"nameCompartment": {
@@ -4358,7 +4576,7 @@
 								"$ref": "AAAAAAGhYouYpkXMRtk="
 							},
 							"lineStyle": 1,
-							"points": "162:106;328.890625:169.46628289473685",
+							"points": "78:103;78:160",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoubXEiSvpA="
@@ -4456,7 +4674,7 @@
 								"$ref": "AAAAAAGhYouYvUX1F1U="
 							},
 							"lineStyle": 1,
-							"points": "293:106;328.890625:162.371875",
+							"points": "194:103;194:160",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoubgEijQoI="
@@ -4554,7 +4772,7 @@
 								"$ref": "AAAAAAGhYouY20YeMi0="
 							},
 							"lineStyle": 1,
-							"points": "424:106;352.890625:165.79340277777777",
+							"points": "322:103;322:160",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoubpki00MI="
@@ -4652,7 +4870,7 @@
 								"$ref": "AAAAAAGhYouY8UZHMEs="
 							},
 							"lineStyle": 1,
-							"points": "658:106;674.5384615384615:160",
+							"points": "580:103;580:160",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYouby0jFoO8="
@@ -4750,7 +4968,7 @@
 								"$ref": "AAAAAAGhYouZP0bbhaU="
 							},
 							"lineStyle": 1,
-							"points": "256:279;332.7368421052632:184",
+							"points": "205:424;205:322",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoub8EjVUjQ="
@@ -4848,7 +5066,7 @@
 								"$ref": "AAAAAAGhYouaAUcuHj8="
 							},
 							"lineStyle": 1,
-							"points": "604:279;674.3684210526316:184",
+							"points": "580:424;580:262",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoucFUjmhMA="
@@ -4946,7 +5164,7 @@
 								"$ref": "AAAAAAGhYouZP0bbhaU="
 							},
 							"lineStyle": 1,
-							"points": "162:429;129:519",
+							"points": "105:585;105:681",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoucOUj4Eds="
@@ -5044,7 +5262,7 @@
 								"$ref": "AAAAAAGhYouZP0bbhaU="
 							},
 							"lineStyle": 1,
-							"points": "266:429;357:519",
+							"points": "328:585;328:681",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoucXEkJWuk="
@@ -5142,7 +5360,7 @@
 								"$ref": "AAAAAAGhYouZP0bbhaU="
 							},
 							"lineStyle": 1,
-							"points": "356:423;585:519",
+							"points": "385:565;520:565;520:681",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoucg0kaFRA="
@@ -5240,7 +5458,7 @@
 								"$ref": "AAAAAAGhYouaAUcuHj8="
 							},
 							"lineStyle": 1,
-							"points": "582:376;632:519",
+							"points": "580:555;580:681",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoucpkkryyE="
@@ -5338,7 +5556,7 @@
 								"$ref": "AAAAAAGhYouah0eCmx4="
 							},
 							"lineStyle": 1,
-							"points": "120:566;120:649",
+							"points": "105:726;105:821",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYouczUk8CR8="
@@ -5436,7 +5654,7 @@
 								"$ref": "AAAAAAGhYouao0er/ao="
 							},
 							"lineStyle": 1,
-							"points": "380:566;380:709",
+							"points": "328:726;328:821",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYouc8klN+dU="
@@ -5534,7 +5752,7 @@
 								"$ref": "AAAAAAGhYouawkfUxg8="
 							},
 							"lineStyle": 1,
-							"points": "640:566;640:649",
+							"points": "580:726;580:821",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoudFEleFic="
@@ -5793,7 +6011,7 @@
 								"$ref": "AAAAAAGhYoubOUhoPH4="
 							},
 							"lineStyle": 1,
-							"points": "549:672;211:672",
+							"points": "580:866;580:888;105:888;105:866",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoudP0lxvT8="
@@ -6077,7 +6295,7 @@
 								"$ref": "AAAAAAGhYoua/UgW0vs="
 							},
 							"lineStyle": 1,
-							"points": "211:693;289:711",
+							"points": "180:843;245:843",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoude0m0S50="
@@ -6361,7 +6579,7 @@
 								"$ref": "AAAAAAGhYoubOUhoPH4="
 							},
 							"lineStyle": 1,
-							"points": "549:693;471:711",
+							"points": "490:843;410:843",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGhYoudsEoGY8g="
@@ -6509,7 +6727,66 @@
 					"_parent": {
 						"$ref": "AAAAAAGhYouYWkWrYPU="
 					},
-					"name": "API маршрутизаторов"
+					"name": "API маршрутизаторов",
+					"operations": [
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZUkcCT7k=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "GET /api/provider_routers"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZa0cIHGg=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "GET /api/provider_routers/feed"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZg0cOa8c=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "GET /api/provider_routers/draft"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZnEcU2Ao=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "POST /api/provider_routers"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZs0cax/c=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "PUT /api/provider_routers/{id}/publish"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZ0Ecgm18=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "DELETE /api/provider_routers/{id}"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouZ6Ecmm1k=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZB0Zu0uY="
+							},
+							"name": "POST /api/provider_routers/{id}/like"
+						}
+					],
+					"documentation": "HTTP-контракт домена: операции — URL методов веб-сервиса"
 				},
 				{
 					"_type": "UMLInterface",
@@ -6517,7 +6794,34 @@
 					"_parent": {
 						"$ref": "AAAAAAGhYouYWkWrYPU="
 					},
-					"name": "API пользователей"
+					"name": "API пользователей",
+					"operations": [
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouaG0dVwIU=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZHEaXf/c="
+							},
+							"name": "POST /api/provider_router_users/register"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouaNkdbQhc=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZHEaXf/c="
+							},
+							"name": "POST /api/provider_router_users/login"
+						},
+						{
+							"_type": "UMLOperation",
+							"_id": "AAAAAAGhYouaUUdhiGE=",
+							"_parent": {
+								"$ref": "AAAAAAGhYouZHEaXf/c="
+							},
+							"name": "POST /api/provider_router_users/logout"
+						}
+					],
+					"documentation": "HTTP-контракт домена: операции — URL методов веб-сервиса"
 				},
 				{
 					"_type": "UMLPackage",
@@ -6591,59 +6895,71 @@
 							"operations": [
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZUkcCT7k=",
+									"_id": "UFJmaXgAAAH1ktZE",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "GET /api/provider_routers"
+									"name": "GetProviderRouters"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZa0cIHGg=",
+									"_id": "UFJmaXgAAAO7h/A1",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "GET /api/provider_routers/feed"
+									"name": "GetProviderRouterFeed"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZg0cOa8c=",
+									"_id": "UFJmaXgAAAWPClC3",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "GET /api/provider_routers/draft"
+									"name": "GetProviderRouterDraft"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZnEcU2Ao=",
+									"_id": "UFJmaXgAAAeSB3iz",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "POST /api/provider_routers"
+									"name": "CreateProviderRouter"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZs0cax/c=",
+									"_id": "UFJmaXgAAAlM/Dcn",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "PUT /api/provider_routers/{id}/publish"
+									"name": "PublishProviderRouter"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZ0Ecgm18=",
+									"_id": "UFJmaXgAAAs9+7tD",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "DELETE /api/provider_routers/{id}"
+									"name": "DeleteProviderRouter"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouZ6Ecmm1k=",
+									"_id": "UFJmaXgAAA3vVbbV",
 									"_parent": {
 										"$ref": "AAAAAAGhYouZP0bZtus="
 									},
-									"name": "POST /api/provider_routers/{id}/like"
+									"name": "LikeProviderRouter"
+								}
+							],
+							"attributes": [
+								{
+									"_type": "UMLAttribute",
+									"_id": "UFJmaXgAAA9Qp9Mw",
+									"_parent": {
+										"$ref": "AAAAAAGhYouZP0bZtus="
+									},
+									"name": "repo",
+									"visibility": "private",
+									"type": "ProviderRouterRepository"
 								}
 							]
 						},
@@ -6685,27 +7001,59 @@
 							"operations": [
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouaG0dVwIU=",
+									"_id": "UFJmaXgAABEs140w",
 									"_parent": {
 										"$ref": "AAAAAAGhYouaAUcssAA="
 									},
-									"name": "POST /api/provider_router_users/register"
+									"name": "RegisterProviderRouterUser"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouaNkdbQhc=",
+									"_id": "UFJmaXgAABNX3aNG",
 									"_parent": {
 										"$ref": "AAAAAAGhYouaAUcssAA="
 									},
-									"name": "POST /api/provider_router_users/login"
+									"name": "LoginProviderRouterUser"
 								},
 								{
 									"_type": "UMLOperation",
-									"_id": "AAAAAAGhYouaUUdhiGE=",
+									"_id": "UFJmaXgAABX6vl4T",
 									"_parent": {
 										"$ref": "AAAAAAGhYouaAUcssAA="
 									},
-									"name": "POST /api/provider_router_users/logout"
+									"name": "LogoutProviderRouterUser"
+								}
+							],
+							"attributes": [
+								{
+									"_type": "UMLAttribute",
+									"_id": "UFJmaXgAABf+OrZJ",
+									"_parent": {
+										"$ref": "AAAAAAGhYouaAUcssAA="
+									},
+									"name": "users",
+									"visibility": "private",
+									"type": "ProviderRouterUserRepository"
+								},
+								{
+									"_type": "UMLAttribute",
+									"_id": "UFJmaXgAABkmcSnd",
+									"_parent": {
+										"$ref": "AAAAAAGhYouaAUcssAA="
+									},
+									"name": "tokens",
+									"visibility": "private",
+									"type": "auth.Manager"
+								},
+								{
+									"_type": "UMLAttribute",
+									"_id": "UFJmaXgAABt/xGZx",
+									"_parent": {
+										"$ref": "AAAAAAGhYouaAUcssAA="
+									},
+									"name": "blacklist",
+									"visibility": "private",
+									"type": "TokenBlacklist"
 								}
 							]
 						}

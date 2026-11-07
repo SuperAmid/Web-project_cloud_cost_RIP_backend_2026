@@ -29,7 +29,7 @@ API: `http://localhost:8080/api`. PostgreSQL: `localhost:5433`, БД `provider_r
 
 Если таблицы уже были созданы старой версией, `001_init` считается выполненной, остальные применяются поверх. Пустая БД заполняется начальными данными (то же — в `db/seed.sql` для ручного импорта).
 
-Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia) — 10 запросов по числу методов, в каждом явно прописан заголовок `Authorization: Bearer {{token}}`. Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности бизнес-процесса создателя: вход, список, добавление, черновик, публикация, лента, лайк, выход (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
+Коллекция запросов: `docs/postman/provider_routers_lab4.postman_collection.json` (импортируется и в Postman, и в Insomnia) — 10 запросов по числу методов, переменных нет: адрес, id и значение токена прописаны явно, в каждом запросе заголовок `Authorization: Bearer <значение JWT>`. Диаграммы в одном файле StarUML `docs/provider_routers.mdj`: классов (`docs/provider_routers.png`), последовательности бизнес-процесса создателя: вход, список, добавление, черновик, публикация, лента, лайк, выход (`docs/provider_routers-sequence.png`), ER (`docs/provider_routers-er.png`).
 
 ## Тесты
 
@@ -221,16 +221,23 @@ swag init -g main.go -o docs/swagger --outputTypes json,yaml --parseInternal
 1. Открыть `http://localhost:8080/swagger/` → `POST /provider_router_users/login` → Try it out → `{"email": "student@provider-routers.local", "password": "password123"}` → Execute. В ответе `access_token`.
 2. **Authorize** → `Bearer <access_token>` → `GET /provider_routers` — список; в запросе виден заголовок `Authorization`, у своих записей `is_own: 1`.
 
-**Postman** (`docs/postman/provider_routers_lab4.postman_collection.json`) — те же 10 методов, что в README, с теми же номерами. У коллекции авторизация выключена (No Auth): заголовок `Authorization: Bearer {{token}}` прописан явно во вкладке **Headers** каждого запроса и отмечен галочкой. Чтобы выполнить запрос как гость, снимите галочку у этого заголовка.
+**Postman** (`docs/postman/provider_routers_lab4.postman_collection.json`) — те же 10 методов, что в README, с теми же номерами. **Переменных в коллекции нет**, все значения прописаны явно:
 
-3. «09 Аутентификация» — скрипт сохраняет токен в переменную `token`, его подставляет заголовок `Authorization` всех запросов.
+- адрес — `http://localhost:8080/api/...`;
+- id — `101` (опубликованный маршрутизатор из seed) и `106` (черновик студента: на чистой базе это первый новый id после `setval(..., 105)`);
+- заголовок **Authorization** — значением `Bearer eyJhbGciOiJIUzI1NiIs...` во вкладке **Headers** каждого из 10 запросов, отмечен галочкой. Токен выдан `student@provider-routers.local` (id 1), подписан секретом `JWT_SECRET` по умолчанию, действует до 30.06.2027;
+- **Accept: application/json** во всех запросах и **Content-Type: application/json** в запросах с JSON-телом (05, 07, 08, 09) тоже прописаны явно, поэтому все заголовки во вкладке Headers белые. Серыми остаются только служебные заголовки Postman в свёрнутом списке «hidden» (`Postman-Token`, `Host`, `Content-Length`), их Postman добавляет сам; `Postman-Token` отключается в Settings → General → Send Postman Token header.
+
+У коллекции авторизация выключена (No Auth). Чтобы выполнить запрос как гость, снимите галочку у `Authorization`.
+
+3. «09 Аутентификация» — в ответе `access_token`. Его можно вставить значением вместо токена коллекции (Bulk Edit во вкладке Headers), но это не обязательно: токен коллекции действует и без входа.
 4. «01 Список с фильтром», галочка у `Authorization` снята (гость) — `200`, у всех `is_own: 0`.
 5. «01 Список с фильтром», галочка у `Authorization` стоит — `200`, `is_own` считается по пользователю из токена.
-6. «04 Добавление с фото и видео» (выбрать файлы `assets/provider-media/provider_routers/core.svg` и `assets/provider-media/videos/core-loop.mp4`) → «03 Черновик» → «05 Публикация» без галочки у `Authorization` — `401` у гостя.
+6. «04 Добавление с фото и видео» (выбрать файлы `assets/provider-media/provider_routers/core.svg` и `assets/provider-media/videos/core-loop.mp4`) — `201`, `id: 106` → «03 Черновик» → «05 Публикация» без галочки у `Authorization` — `401` у гостя.
 7. «05 Публикация» с галочкой у `Authorization` — `200`, `status: published`.
-8. Остальные запросы: «02 Лента» (без параметров и с галочками `id`, `next`), «07 Лайк», «06 Удаление», «08 Регистрация», «10 Деавторизация» — токен в blacklist; после неё «05 Публикация» с тем же токеном — `401`.
+8. Остальные запросы: «02 Лента» (без параметров и с галочками `id=101`, `next=true`), «07 Лайк», «06 Удаление», «08 Регистрация» (email `amid.gadzhiev@provider-routers.local`, повторно — `409`), «10 Деавторизация».
 
-Скрипты сами сохраняют переменные: `token` (вход), `provider_router_id` (создание/черновик), `feed_id` (лента без id), `user_email` (регистрация; email уникален за счёт `{{$timestamp}}`). При повторном показе сначала удалить или опубликовать свой черновик — иначе создание вернёт `409`.
+«10 Деавторизация» прописан **со своим токеном** (другой `iat`): после выхода этот токен лежит в blacklist Redis до конца срока, а токен запросов 01–09 продолжает работать, и коллекцию можно показывать повторно. Чтобы показать `401` после выхода, вставьте токен из запроса 10 в «05 Публикация». Если `id` черновика не 106 (база не чистая), исправьте число в адресах 05 и 06 на id из ответа 03/04. При повторном показе сначала удалите или опубликуйте свой черновик — иначе создание вернёт `409`.
 
 **Redis после выхода** (cmd):
 
