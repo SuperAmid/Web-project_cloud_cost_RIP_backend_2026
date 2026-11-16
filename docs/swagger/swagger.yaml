@@ -163,6 +163,7 @@ paths:
       - application/json
       description: 'Токен из access_token передаётся в заголовке Authorization: Bearer
         <токен>.'
+      operationId: loginProviderRouterUser
       parameters:
       - description: email и пароль
         in: body
@@ -191,6 +192,7 @@ paths:
   /provider_router_users/logout:
     post:
       description: Текущий токен попадает в blacklist Redis до конца срока действия.
+      operationId: logoutProviderRouterUser
       produces:
       - application/json
       responses:
@@ -212,6 +214,7 @@ paths:
       consumes:
       - application/json
       description: Пароль хранится как bcrypt-хеш.
+      operationId: registerProviderRouterUser
       parameters:
       - description: email, имя, пароль 6–72 байта
         in: body
@@ -241,6 +244,7 @@ paths:
     get:
       description: Только опубликованные, фильтры выполняются в БД. is_own = 1, если
         создатель — текущий пользователь (для гостя 0). Доступно без авторизации.
+      operationId: getProviderRouters
       parameters:
       - description: Минимальная пропускная способность, Мбит/с
         in: query
@@ -273,6 +277,7 @@ paths:
       - multipart/form-data
       description: Файлы сохраняются в MinIO под латинскими именами, создатель — пользователь
         из токена.
+      operationId: createProviderRouter
       parameters:
       - description: Название
         in: formData
@@ -316,6 +321,7 @@ paths:
   /provider_routers/{id}:
     delete:
       description: status = deleted, запись больше не отдаётся клиенту.
+      operationId: deleteProviderRouter
       parameters:
       - description: Id маршрутизатора
         in: path
@@ -351,6 +357,7 @@ paths:
       consumes:
       - application/json
       description: like = 1 ставит лайк, 0 снимает.
+      operationId: likeProviderRouter
       parameters:
       - description: Id маршрутизатора
         in: path
@@ -393,6 +400,7 @@ paths:
       - application/json
       description: draft → published, published_at ставит сервер. В той же транзакции
         заполняются описание и два поля по теме.
+      operationId: publishProviderRouter
       parameters:
       - description: Id черновика
         in: path
@@ -440,6 +448,7 @@ paths:
   /provider_routers/draft:
     get:
       description: Не более одного черновика у пользователя, id не указывается.
+      operationId: getProviderRouterDraft
       produces:
       - application/json
       responses:
@@ -465,6 +474,7 @@ paths:
       description: Без id — первая опубликованная, с id — эта, с id и next=true —
         следующая (после последней — первая). is_liked = 1, если текущий пользователь
         лайкнул (для гостя 0). Доступно без авторизации.
+      operationId: getProviderRouterFeed
       parameters:
       - description: Id маршрутизатора
         in: query

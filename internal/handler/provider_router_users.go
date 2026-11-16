@@ -30,6 +30,7 @@ func toUserResponse(user ds.ProviderRouterUser) serializer.ProviderRouterUserRes
 //	@Success		201		{object}	serializer.ProviderRouterUserResponse
 //	@Failure		400		{object}	serializer.ErrorResponse
 //	@Failure		409		{object}	serializer.ErrorResponse
+//	@ID				registerProviderRouterUser
 //	@Router			/provider_router_users/register [post]
 func (h *Handler) RegisterProviderRouterUser(w http.ResponseWriter, r *http.Request) {
 	var request serializer.ProviderRouterUserRegisterRequest
@@ -76,6 +77,7 @@ func (h *Handler) RegisterProviderRouterUser(w http.ResponseWriter, r *http.Requ
 //	@Success		200		{object}	serializer.ProviderRouterUserLoginResponse
 //	@Failure		400		{object}	serializer.ErrorResponse
 //	@Failure		401		{object}	serializer.ErrorResponse
+//	@ID				loginProviderRouterUser
 //	@Router			/provider_router_users/login [post]
 func (h *Handler) LoginProviderRouterUser(w http.ResponseWriter, r *http.Request) {
 	var request serializer.ProviderRouterUserLoginRequest
@@ -116,6 +118,7 @@ func (h *Handler) LoginProviderRouterUser(w http.ResponseWriter, r *http.Request
 //	@Success		200	{object}	serializer.MessageResponse
 //	@Failure		401	{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				logoutProviderRouterUser
 //	@Router			/provider_router_users/logout [post]
 func (h *Handler) LogoutProviderRouterUser(w http.ResponseWriter, r *http.Request) {
 	s, _ := currentSession(r)

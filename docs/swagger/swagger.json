@@ -25,6 +25,7 @@
                     "provider_router_users"
                 ],
                 "summary": "Вход: выдача JWT",
+                "operationId": "loginProviderRouterUser",
                 "parameters": [
                     {
                         "description": "email и пароль",
@@ -73,6 +74,7 @@
                     "provider_router_users"
                 ],
                 "summary": "Выход",
+                "operationId": "logoutProviderRouterUser",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -102,6 +104,7 @@
                     "provider_router_users"
                 ],
                 "summary": "Регистрация",
+                "operationId": "registerProviderRouterUser",
                 "parameters": [
                     {
                         "description": "email, имя, пароль 6–72 байта",
@@ -150,6 +153,7 @@
                     "provider_routers"
                 ],
                 "summary": "Список маршрутизаторов",
+                "operationId": "getProviderRouters",
                 "parameters": [
                     {
                         "type": "integer",
@@ -199,6 +203,7 @@
                     "provider_routers"
                 ],
                 "summary": "Создание черновика с фото и видео",
+                "operationId": "createProviderRouter",
                 "parameters": [
                     {
                         "type": "string",
@@ -265,6 +270,7 @@
                     "provider_routers"
                 ],
                 "summary": "Черновик текущего пользователя",
+                "operationId": "getProviderRouterDraft",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -302,6 +308,7 @@
                     "provider_routers"
                 ],
                 "summary": "Лента: одна карточка",
+                "operationId": "getProviderRouterFeed",
                 "parameters": [
                     {
                         "type": "integer",
@@ -353,6 +360,7 @@
                     "provider_routers"
                 ],
                 "summary": "Логическое удаление своей записи",
+                "operationId": "deleteProviderRouter",
                 "parameters": [
                     {
                         "type": "integer",
@@ -408,6 +416,7 @@
                     "provider_routers"
                 ],
                 "summary": "Лайк от текущего пользователя",
+                "operationId": "likeProviderRouter",
                 "parameters": [
                     {
                         "type": "integer",
@@ -472,6 +481,7 @@
                     "provider_routers"
                 ],
                 "summary": "Публикация своего черновика",
+                "operationId": "publishProviderRouter",
                 "parameters": [
                     {
                         "type": "integer",

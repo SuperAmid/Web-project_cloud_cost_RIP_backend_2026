@@ -58,6 +58,7 @@ func (h *Handler) toDraft(item ds.ProviderRouter) serializer.ProviderRouterDraft
 //	@Success		200					{array}		serializer.ProviderRouterListItem
 //	@Failure		400					{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				getProviderRouters
 //	@Router			/provider_routers [get]
 func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -106,6 +107,7 @@ func (h *Handler) GetProviderRouters(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	serializer.ErrorResponse
 //	@Failure		404		{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				getProviderRouterFeed
 //	@Router			/provider_routers/feed [get]
 func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -162,6 +164,7 @@ func (h *Handler) GetProviderRouterFeed(w http.ResponseWriter, r *http.Request) 
 //	@Failure		401	{object}	serializer.ErrorResponse
 //	@Failure		404	{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				getProviderRouterDraft
 //	@Router			/provider_routers/draft [get]
 func (h *Handler) GetProviderRouterDraft(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -188,6 +191,7 @@ func (h *Handler) GetProviderRouterDraft(w http.ResponseWriter, r *http.Request)
 //	@Failure		401		{object}	serializer.ErrorResponse
 //	@Failure		409		{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				createProviderRouter
 //	@Router			/provider_routers [post]
 func (h *Handler) CreateProviderRouter(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -265,6 +269,7 @@ func singleFile(form *multipart.Form, field string) (*multipart.FileHeader, erro
 //	@Failure		404		{object}	serializer.ErrorResponse
 //	@Failure		409		{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				publishProviderRouter
 //	@Router			/provider_routers/{id}/publish [put]
 func (h *Handler) PublishProviderRouter(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -326,6 +331,7 @@ func validatePublish(request serializer.ProviderRouterPublishRequest) (repositor
 //	@Failure		403	{object}	serializer.ErrorResponse
 //	@Failure		404	{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				deleteProviderRouter
 //	@Router			/provider_routers/{id} [delete]
 func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
@@ -359,6 +365,7 @@ func (h *Handler) DeleteProviderRouter(w http.ResponseWriter, r *http.Request) {
 //	@Failure		401		{object}	serializer.ErrorResponse
 //	@Failure		404		{object}	serializer.ErrorResponse
 //	@Security		BearerAuth
+//	@ID				likeProviderRouter
 //	@Router			/provider_routers/{id}/like [post]
 func (h *Handler) LikeProviderRouter(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
